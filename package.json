@@ -1,0 +1,19 @@
+{
+  "name": "mova-finance",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix client run dev\" \"node server/index.js\"",
+    "build": "npm --prefix client run build",
+    "start": "node server/index.js",
+    "preview": "npm --prefix client run preview"
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "cors": "latest",
+    "express": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {}
+}
