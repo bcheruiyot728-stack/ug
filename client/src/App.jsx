@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 const USD_TO_UGX = 3750;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://movafinanceapp.onrender.com';
 
 const loanModels = {
   personal: {
@@ -205,7 +206,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/telegram/contact', {
+      const response = await fetch(`${API_BASE_URL}/api/telegram/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
