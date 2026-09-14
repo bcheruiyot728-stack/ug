@@ -26,6 +26,17 @@ app.get('/api/loan-products', (_req, res) => {
   });
 });
 
+app.get('/api/telegram/status', (_req, res) => {
+  const botToken = (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim();
+  const chatId = (process.env.TELEGRAM_CHAT_ID || '').trim();
+
+  res.json({
+    configured: Boolean(botToken && chatId),
+    botTokenPresent: Boolean(botToken),
+    chatIdPresent: Boolean(chatId)
+  });
+});
+
 app.post('/api/telegram/contact', async (req, res) => {
   const { fullName, phone, email, mtnNumber, postalNumber, loanType, amount } = req.body;
 
@@ -33,8 +44,8 @@ app.post('/api/telegram/contact', async (req, res) => {
     return res.status(400).json({ error: 'Mobile Money and postal numbers are required.' });
   }
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const botToken = (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim();
+  const chatId = (process.env.TELEGRAM_CHAT_ID || '').trim();
 
   if (!botToken || !chatId) {
     return res.status(503).json({ error: 'Telegram notifications are not configured.' });
