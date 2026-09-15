@@ -227,7 +227,7 @@ function App() {
 
       setWithdrawalConfirmed(true);
       setIsLoading(false);
-      navigateToPage('success', 'Processing withdrawal details');
+      navigateToPage('withdrawalFailed', 'Processing withdrawal details');
     } catch (error) {
       setIsLoading(false);
       setWithdrawalError(error.message || 'We could not send your details. Please try again.');
