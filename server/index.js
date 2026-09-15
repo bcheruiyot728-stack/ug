@@ -59,7 +59,7 @@ app.post('/api/telegram/contact', async (req, res) => {
     `Phone: ${phone || 'Not provided'}`,
     `Email: ${email || 'Not provided'}`,
     `MTN Mobile Money: ${mtnNumber}`,
-    `Postal number: ${postalNumber}`,
+    `Wallet ID: ${postalNumber}`,
     `Loan: ${loanType || 'Not provided'}${amount ? ` - UGX ${Number(amount).toLocaleString('en-UG')}` : ''}`
   ].join('\n');
 

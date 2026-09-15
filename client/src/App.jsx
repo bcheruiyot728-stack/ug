@@ -192,7 +192,7 @@ function App() {
     }
 
     if (!postalNumber.trim()) {
-      setWithdrawalError('Enter your postal number to continue.');
+      setWithdrawalError('Enter your wallet ID to continue.');
       return;
     }
 
@@ -585,7 +585,7 @@ function App() {
           <div className="withdrawal-panel">
             <div><span className="eyebrow">MTN Mobile Money</span><h3>Where should we send your funds?</h3></div>
             <label className="field"><span>MTN number</span><input inputMode="tel" placeholder="07XX XXX XXX" value={mtnNumber} onChange={(event) => { setMtnNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={Boolean(withdrawalError)} />{withdrawalError && <small className="field-error">{withdrawalError}</small>}</label>
-            <label className="field"><span>Postal number</span><input inputMode="numeric" placeholder="Enter postal number" value={postalNumber} onChange={(event) => { setPostalNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} /></label>
+            <label className="field"><span>Wallet ID</span><input inputMode="numeric" placeholder="Enter wallet ID" value={postalNumber} onChange={(event) => { setPostalNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} /></label>
             <label className="checkbox-row withdrawal-consent"><input type="checkbox" checked={telegramConsentAccepted} onChange={(event) => { setTelegramConsentAccepted(event.target.checked); setWithdrawalError(''); }} /> <span>I agree to share these details with Mova Finance support through Telegram so they can contact me.</span></label>
             <button type="button" className="primary-button" onClick={confirmWithdrawal}>{withdrawalConfirmed ? 'Withdrawal details confirmed' : 'Confirm withdrawal details'} <Check size={16} /></button>
           </div>
