@@ -617,7 +617,7 @@ function App() {
           <div className="support-panel">
             <strong>Contact Mova support</strong>
             <span>Share your application details with our team and we will help resolve the withdrawal issue.</span>
-            <a className="whatsapp-button" href="https://wa.me/qr/EPZ6GW2PGBL7H1" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Chat with support on WhatsApp</a>
+            <a className="whatsapp-button" href="https://wa.me/254797784647" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Chat with support on WhatsApp</a>
           </div>
           <div className="wizard-actions review-actions">
             <button type="button" className="secondary-button" onClick={() => navigateToPage('success', 'Returning to your offer')}>Back to offer</button>
