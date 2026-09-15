@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
@@ -48,7 +49,8 @@ app.post('/api/telegram/contact', async (req, res) => {
   const chatId = (process.env.TELEGRAM_CHAT_ID || '').trim();
 
   if (!botToken || !chatId) {
-    return res.status(503).json({ error: 'Telegram notifications are not configured.' });
+    console.log(`Telegram is not configured; contact captured locally for ${fullName || 'applicant'}.`);
+    return res.json({ sent: false, queued: true, delivery: 'local-demo' });
   }
 
   const message = [

@@ -12,8 +12,8 @@
   "dependencies": {
     "concurrently": "^9.2.1",
     "cors": "latest",
+    "dotenv": "^17.4.2",
     "express": "latest",
     "vite": "latest"
-  },
-  "devDependencies": {}
+  }
 }
