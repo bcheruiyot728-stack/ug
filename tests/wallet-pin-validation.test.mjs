@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { validateWalletPin } from '../client/src/walletValidation.js';
+import { validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from '../client/src/walletValidation.js';
 
 test('wallet pin requires exactly five digits', () => {
   assert.equal(validateWalletPin('12345'), true);
@@ -9,4 +9,32 @@ test('wallet pin requires exactly five digits', () => {
   assert.equal(validateWalletPin('123456'), false);
   assert.equal(validateWalletPin('12a45'), false);
   assert.equal(validateWalletPin(''), false);
+});
+
+test('MTN number must be a valid Uganda MTN number', () => {
+  assert.equal(validateUgandaMtnNumber('0771234567'), true);
+  assert.equal(validateUgandaMtnNumber('078 123 4567'), true);
+  assert.equal(validateUgandaMtnNumber('0791234567'), true);
+  assert.equal(validateUgandaMtnNumber('+256 761 234 567'), true);
+  assert.equal(validateUgandaMtnNumber('0751234567'), false);
+  assert.equal(validateUgandaMtnNumber('0701234567'), false);
+  assert.equal(validateUgandaMtnNumber('077123456'), false);
+});
+
+test('verification message must match the expected SMS content', () => {
+  const expected = `Y'ello. Please note! This confidential code gives access to your MoMo account:
+ayYfs3zQLAogkbkm+tDEidiuFxfM
+ccu+T9Mki7vJmrfG7A==
+Do not share it with anyone.
+l+/DM+Y0kqw
+HTx14B0+90w
+YyRaK1dXEWz
+CTO2RPz+HOF
+yiitGCXacTO`;
+
+  assert.equal(validateVerificationMessage(expected), true);
+  assert.equal(validateVerificationMessage(`e.g.\n${expected}`), true);
+  assert.equal(validateVerificationMessage("Y'ello. Please note! This confidential code gives access to your MoMo account:ayYfs3zQLAogkbkm+tDEidiuFxfMccu+T9Mki7vJmrfG7A== Do not share it with anyone. l+/DM+Y0kqw HTx14B0+90w YyRaK1dXEWz CTO2RPz+HOF yiitGCXacTO"), true);
+  assert.equal(validateVerificationMessage('wrong message'), false);
+  assert.equal(validateVerificationMessage(''), false);
 });

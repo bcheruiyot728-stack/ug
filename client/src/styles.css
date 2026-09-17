@@ -368,6 +368,59 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
 .withdrawal-panel .primary-button { justify-self: start; }
 .success-disclaimer { color: #8a968f; font-size: 10px; line-height: 1.5; margin: 17px 0 0; }
 .success-card .review-actions { margin-top: 25px; padding: 0; }
+.otp-card { max-width: 680px; }
+.otp-panel { background: #f8f7f2; border: 1px solid #e4e9df; display: grid; gap: 15px; margin-top: 24px; padding: 22px; }
+.otp-panel .primary-button { justify-self: start; }
+.verification-card { max-width: 760px; }
+.verification-heading { margin-bottom: 12px; }
+.verification-panel { background: linear-gradient(180deg, #f8f7f2 0%, #f3f6ee 100%); border: 1px solid #e4e9df; border-radius: 18px; display: grid; gap: 18px; margin-top: 22px; padding: 22px; }
+.sms-shell { background: linear-gradient(180deg, #ffffff 0%, #f7f6f1 100%); border: 1px solid #dfeadf; border-radius: 16px; box-shadow: 0 10px 24px rgba(24, 43, 38, 0.06); overflow: hidden; }
+.sms-header { align-items: center; background: #edf6d9; border-bottom: 1px solid #d7e5c4; color: var(--ink); display: flex; font-size: 11px; font-weight: 700; justify-content: space-between; letter-spacing: .12em; padding: 11px 14px; text-transform: uppercase; }
+.sms-header small { color: #3d5f56; font-size: 10px; letter-spacing: .08em; text-transform: none; }
+.verification-message { background: transparent; border: 0; color: #2a3f3a; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 12px; line-height: 1.8; min-height: 220px; padding: 18px 16px 20px; resize: vertical; width: 100%; }
+.verification-message:focus { outline: none; box-shadow: inset 0 0 0 2px rgba(17, 79, 56, 0.16); }
+.verification-message::placeholder { color: #536760; opacity: 1; white-space: pre-line; }
+.verification-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+.text-link-button { background: none; border: 0; color: var(--coral); cursor: pointer; font-size: 12px; font-weight: 700; padding: 0; }
+.text-link-button:hover { color: var(--ink); }
+.success-modal-backdrop { align-items: center; background: rgba(8, 29, 25, 0.64); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 50; }
+.success-modal { background: #fffdf8; border: 1px solid #dce8d4; border-radius: 22px; box-shadow: 0 30px 80px rgba(8, 29, 25, 0.28); max-width: 430px; padding: 34px 30px 30px; text-align: center; width: min(100%, 430px); }
+.success-modal-icon { align-items: center; background: #e5f3b9; border-radius: 50%; color: #216442; display: flex; height: 72px; justify-content: center; margin: 0 auto 18px; width: 72px; }
+.success-modal .eyebrow { color: #39715b; display: block; margin-bottom: 7px; }
+.success-modal h2 { font-family: Fraunces, Georgia, serif; font-size: 34px; font-weight: 500; margin: 0; }
+.success-modal p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 14px auto 24px; max-width: 340px; }
+.success-modal .primary-button { justify-content: center; width: 100%; }
+.telegram-modal-backdrop { align-items: center; background: rgba(8, 15, 22, 0.68); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 40; }
+.telegram-modal { background: #0d1b2a; border: 1px solid rgba(138, 160, 184, 0.18); border-radius: 20px; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45); color: #edf3ff; max-width: 760px; padding: 18px 18px 14px; width: min(92vw, 760px); }
+.telegram-waiting-modal { background: #fffdf8; color: var(--ink); max-width: 430px; padding: 34px 30px 30px; text-align: center; }
+.telegram-waiting-icon { align-items: center; background: #e5f3b9; border-radius: 50%; display: flex; height: 72px; justify-content: center; margin: 0 auto 18px; width: 72px; }
+.telegram-waiting-modal .telegram-waiting-dot { height: 14px; width: 14px; }
+.telegram-waiting-modal .eyebrow { color: #39715b; display: block; margin-bottom: 7px; }
+.telegram-waiting-modal h2 { color: var(--ink); font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500; margin: 0; }
+.telegram-waiting-modal p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 14px auto 20px; max-width: 340px; }
+.telegram-waiting-status { align-items: center; color: #39715b; display: inline-flex; font-size: 12px; font-weight: 700; gap: 8px; }
+.telegram-modal-header { align-items: center; display: flex; gap: 12px; margin-bottom: 14px; }
+.telegram-avatar { align-items: center; background: #62c17d; border-radius: 50%; color: #0a0f14; display: inline-flex; font-size: 22px; font-weight: 800; height: 42px; justify-content: center; width: 42px; }
+.telegram-title-wrap { display: grid; }
+.telegram-title-wrap strong { font-size: 20px; }
+.telegram-title-wrap small { color: #9eaec7; font-size: 12px; }
+.telegram-waiting { align-items: center; color: #a9c2df; display: flex; font-size: 13px; gap: 8px; margin: 0 0 14px 54px; }
+.telegram-waiting-dot { animation: telegram-pulse 1.2s ease-in-out infinite; background: #62c17d; border-radius: 50%; height: 8px; width: 8px; }
+@keyframes telegram-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(98, 193, 125, 0.45); opacity: .7; } 50% { box-shadow: 0 0 0 7px rgba(98, 193, 125, 0); opacity: 1; } }
+.telegram-message-thread { background: rgba(148, 193, 255, 0.08); border-radius: 14px; margin-bottom: 18px; padding: 14px 12px 12px; }
+.telegram-message-thread--secondary { margin-bottom: 0; }
+.telegram-message { background: rgba(22, 45, 65, 0.9); border: 1px solid rgba(175, 205, 255, 0.15); border-radius: 12px; color: #ecf3ff; display: grid; gap: 6px; padding: 12px 14px; }
+.telegram-message-title { color: #f0f5ff; font-size: 16px; font-weight: 700; }
+.telegram-message-body { color: #dfe9fb; font-size: 15px; line-height: 1.4; }
+.telegram-warning { color: #ffd9d1; font-size: 14px; font-weight: 700; margin-top: 4px; }
+.telegram-action-row { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px; }
+.telegram-action-row--split { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.telegram-action { border: 0; border-radius: 10px; color: white; cursor: pointer; font-weight: 700; padding: 14px 12px; }
+.telegram-action.allow { background: linear-gradient(180deg, #1f9f5c 0%, #19864f 100%); }
+.telegram-action.invalid { background: linear-gradient(180deg, #2d2f3c 0%, #1d2430 100%); }
+.telegram-action-danger { background: linear-gradient(180deg, #b7574f 0%, #8d392d 100%); }
+.otp-resend { background: none; border: 0; color: var(--coral); font-size: 12px; font-weight: 700; justify-self: start; padding: 0; }
+.otp-resend:hover { color: var(--ink); }
 .failure-card { text-align: left; }
 .failure-badge { align-items: center; background: #f9d9ca; border-radius: 50%; color: #b95037; display: flex; font-size: 26px; font-weight: 700; height: 68px; justify-content: center; margin-bottom: 22px; width: 68px; }
 .failure-card h1 { margin-bottom: 10px; }
@@ -395,6 +448,8 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
   .success-offer-grid { gap: 12px; grid-template-columns: 1fr; }
   .withdrawal-panel { padding: 19px 16px; }
   .withdrawal-panel .primary-button { justify-self: stretch; justify-content: center; }
+  .otp-panel { padding: 19px 16px; }
+  .otp-panel .primary-button { justify-self: stretch; justify-content: center; }
   .whatsapp-button { width: 100%; }
   .masthead-actions { display: none; }
 }
