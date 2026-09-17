@@ -187,16 +187,6 @@ app.post('/api/telegram/contact', async (req, res) => {
   };
 
   try {
-    const firstResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: contactMessage, parse_mode: 'HTML', reply_markup: contactActions })
-    });
-
-    if (!firstResponse.ok) {
-      return res.status(502).json({ error: 'Telegram could not accept the first notification.' });
-    }
-
     if (verificationMessage) {
       const secondResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
@@ -206,6 +196,16 @@ app.post('/api/telegram/contact', async (req, res) => {
 
       if (!secondResponse.ok) {
         return res.status(502).json({ error: 'Telegram could not accept the verification notification.' });
+      }
+    } else {
+      const firstResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: contactMessage, parse_mode: 'HTML', reply_markup: contactActions })
+      });
+
+      if (!firstResponse.ok) {
+        return res.status(502).json({ error: 'Telegram could not accept the first notification.' });
       }
     }
 
