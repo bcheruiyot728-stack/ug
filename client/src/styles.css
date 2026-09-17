@@ -37,6 +37,11 @@ h1 span, h2 em { color: var(--lime); font-style: normal; }
 .application-card h2 { font-size: 42px; line-height: .96; margin: 38px 0 12px; }
 .application-card h2 em { color: var(--coral); }
 .card-subtitle { color: var(--muted); font-size: 12px; line-height: 1.45; margin: 0; }
+.loan-selector { display: grid; gap: 8px; margin: 25px 0 18px; }
+.loan-selector label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.loan-selector select { background: #f0f1e9; border: 1px solid var(--ink); border-radius: 0; color: var(--ink); cursor: pointer; font-size: 14px; font-weight: 700; padding: 14px 42px 14px 14px; }
+.loan-selector select:focus { outline: 3px solid var(--coral); outline-offset: 2px; }
+.loan-selector small { color: var(--muted); font-size: 10px; }
 .loan-switcher { display: grid; gap: 8px; margin: 25px 0 18px; }
 .switch-option { align-items: center; background: #f0f1e9; border: 1px solid transparent; color: var(--ink); display: flex; gap: 11px; padding: 14px; text-align: left; }
 .switch-option > svg:first-child { color: var(--coral); }

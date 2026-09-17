@@ -394,17 +394,13 @@ function App() {
             <div className="card-topline"><span>Loan finder</span><span className="step-count">Personal or business</span></div>
             <h2>What are you<br /><em>planning?</em></h2>
             <p className="card-subtitle">Choose a loan type to see the range that fits.</p>
-            <div className="loan-switcher">
-              <button className={loanType === 'personal' ? 'switch-option selected' : 'switch-option'} onClick={() => selectLoan('personal')}>
-                <Sparkles size={19} />
-                <span><strong>Personal</strong><small>{loanModels.personal.description}</small></span>
-                <Check size={17} />
-              </button>
-              <button className={loanType === 'business' ? 'switch-option selected' : 'switch-option'} onClick={() => selectLoan('business')}>
-                <Banknote size={19} />
-                <span><strong>Business</strong><small>{loanModels.business.description}</small></span>
-                <Check size={17} />
-              </button>
+            <div className="loan-selector">
+              <label htmlFor="loan-type">Loan type</label>
+              <select id="loan-type" value={loanType} onChange={(event) => selectLoan(event.target.value)}>
+                <option value="personal">Personal loan</option>
+                <option value="business">Business loan</option>
+              </select>
+              <small>{loanModels[loanType].description}</small>
             </div>
             <div className="range-callout">
               <span>Available range</span>
