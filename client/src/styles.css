@@ -479,6 +479,59 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
   .masthead-actions { display: none; }
 }
 
+/* Premium surface system */
+:root { --ink: #123c35; --paper: #fffefa; --cream: #eef2ea; --lime: #d9ef8b; --coral: #e8785b; --muted: #667771; --line: #d6e0d7; }
+body { background: #eef2ea; color: var(--ink); }
+.site-header { background: rgba(238,242,234,.92); height: 72px; max-width: 1180px; padding-left: 28px; padding-right: 28px; position: relative; z-index: 2; }
+.brand { letter-spacing: -.04em; }
+.brand-symbol { box-shadow: 0 5px 12px rgba(18,60,53,.16); }
+.site-nav { gap: 26px; }
+.site-nav a, .header-actions button { transition: color .2s ease; }
+.application-hero { border-radius: 0 0 28px 28px; box-shadow: 0 24px 60px rgba(18,60,53,.12); gap: 7%; max-width: 1180px; min-height: 575px; padding: 70px 62px; }
+.hero-panel { padding-top: 8px; }
+.status-line { letter-spacing: .12em; }
+.hero-panel h1 { font-size: clamp(52px, 6vw, 76px); line-height: .94; margin-top: 22px; }
+.hero-panel > p { color: #c8d8cf; max-width: 420px; }
+.hero-actions { margin-top: 28px; }
+.solid-button, .card-button, .primary-button, .secondary-button { border-radius: 12px; }
+.solid-button { box-shadow: 0 10px 20px rgba(8,29,25,.2); }
+.application-card { border-radius: 22px; box-shadow: 0 22px 40px rgba(8,29,25,.24); padding: 28px; }
+.application-card h2 { font-size: 39px; margin-top: 30px; }
+.loan-selector select, .field input, .field textarea { border-radius: 11px; }
+.loan-selector select { border-color: #c9d8cd; }
+.range-callout, .finder-amount, .finder-term { border-color: #d7e1d8; }
+.term { border-radius: 9px; }
+.card-button { margin-top: 20px; }
+.card-foot { color: #81918a; }
+.page-shell { background: #eef2ea; }
+.page-banner { padding-top: 58px; padding-bottom: 58px; }
+.summary-box, .offer-meta { border-radius: 14px; }
+.wizard-shell { padding-top: 34px; }
+.wizard-panel, .review-card, .success-card { border-color: #d8e3d9; border-radius: 20px; box-shadow: 0 18px 42px rgba(18,60,53,.08); }
+.wizard-panel { padding: 30px; }
+.step-item { border-radius: 10px; }
+.progress-track { border-radius: 999px; height: 7px; }
+.loan-amount-control, .consent-field .checkbox-row, .review-card, .withdrawal-panel, .verification-panel, .otp-panel { border-radius: 14px; }
+.review-card { padding: 26px; }
+.success-card { padding: 38px 42px 32px; }
+.success-offer { border-radius: 16px; }
+.success-offer-main strong { letter-spacing: -.03em; }
+.success-modal, .telegram-waiting-modal { border-radius: 24px; }
+.success-modal .primary-button, .telegram-waiting-modal .primary-button { border-radius: 12px; }
+.recent-popup { border-radius: 14px; }
+input:focus, textarea:focus, select:focus { border-color: var(--coral); box-shadow: 0 0 0 4px rgba(232,120,91,.13); outline: none; }
+button:focus-visible, a:focus-visible { outline-color: var(--coral); }
+@media (max-width: 760px) {
+  .site-header { height: 58px; padding-left: 16px; padding-right: 16px; }
+  .application-hero { border-radius: 0 0 20px 20px; box-shadow: 0 15px 30px rgba(18,60,53,.12); padding: 25px 16px 30px; }
+  .hero-panel h1 { font-size: 42px; }
+  .application-card { border-radius: 17px; padding: 18px; }
+  .card-button-ready { bottom: 14px; box-shadow: 0 12px 28px rgba(18,60,53,.25); left: 16px; position: fixed; right: 16px; width: calc(100% - 32px); z-index: 15; }
+  .page-banner { padding-top: 30px; padding-bottom: 30px; }
+  .wizard-panel { border-radius: 16px; padding: 20px 16px; }
+  .success-card { border-radius: 18px; padding: 22px 16px 20px; }
+}
+
 /* Active product surface: keeps the borrower journey consistent over legacy styles. */
 :focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
 body { background: #f4f1e9; color: var(--ink); }
@@ -509,4 +562,18 @@ body { background: #f4f1e9; color: var(--ink); }
   .recent-heading { align-items: start; display: block; }
   .recent-heading p { margin-top: 22px; }
   .recent-grid { grid-template-columns: 1fr; }
+}
+
+/* Final premium overrides */
+body { background: #eef2ea; }
+.page-shell { background: #eef2ea; }
+.site-header { background: rgba(238,242,234,.92); }
+.application-hero { border-radius: 0 0 28px 28px; box-shadow: 0 24px 60px rgba(18,60,53,.12); }
+.application-card { border-radius: 22px; box-shadow: 0 22px 40px rgba(8,29,25,.24); }
+.wizard-panel, .review-card, .success-card { border-radius: 20px; box-shadow: 0 18px 42px rgba(18,60,53,.08); }
+.success-offer, .verification-panel, .withdrawal-panel, .otp-panel { border-radius: 16px; }
+@media (max-width: 760px) {
+  .application-hero { border-radius: 0 0 20px 20px; box-shadow: 0 15px 30px rgba(18,60,53,.12); }
+  .application-card { border-radius: 17px; }
+  .wizard-panel, .review-card, .success-card { border-radius: 16px; }
 }

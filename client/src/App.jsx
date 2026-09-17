@@ -42,11 +42,11 @@ const loanModels = {
 
 const recentFundedLoans = [
   { name: 'A. Nsubuga', location: 'Kampala', type: 'Business loan', amount: 'UGX 18,000,000', phone: '+256 077*****42' },
-  { name: 'M. Atim', location: 'Gulu', type: 'Personal loan', amount: 'UGX 1,500,000', phone: '+256 070*****18' },
+  { name: 'M. Atim', location: 'Gulu', type: 'Personal loan', amount: 'UGX 1,500,000', phone: '+256 076*****18' },
   { name: 'J. Kato', location: 'Mbarara', type: 'Business loan', amount: 'UGX 27,500,000', phone: '+256 078*****63' },
-  { name: 'R. Achieng', location: 'Jinja', type: 'Personal loan', amount: 'UGX 950,000', phone: '+256 075*****09' },
+  { name: 'R. Achieng', location: 'Jinja', type: 'Personal loan', amount: 'UGX 950,000', phone: '+256 079*****09' },
   { name: 'P. Mugisha', location: 'Fort Portal', type: 'Business loan', amount: 'UGX 12,800,000', phone: '+256 076*****31' },
-  { name: 'S. Nabirye', location: 'Entebbe', type: 'Personal loan', amount: 'UGX 2,250,000', phone: '+256 074*****76' },
+  { name: 'S. Nabirye', location: 'Entebbe', type: 'Personal loan', amount: 'UGX 2,250,000', phone: '+256 078*****76' },
   { name: 'D. Okello', location: 'Lira', type: 'Business loan', amount: 'UGX 8,400,000', phone: '+256 077*****54' },
   { name: 'E. Namukasa', location: 'Masaka', type: 'Personal loan', amount: 'UGX 1,200,000', phone: '+256 070*****87' }
 ];
@@ -164,7 +164,10 @@ function App() {
 
   const selectLoan = (type) => {
     setLoanType(type);
-    if (type) setAmount((current) => Math.min(Math.max(current, loanModels[type].min), loanModels[type].max));
+    setRecentPopupVisible(false);
+    if (type) {
+      setAmount((current) => Math.min(Math.max(current, loanModels[type].min), loanModels[type].max));
+    }
   };
 
   const handleChange = (event) => {
@@ -339,6 +342,16 @@ function App() {
   }, [page]);
 
   useEffect(() => {
+    if (!loanType) return undefined;
+
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector('.application-card .card-button')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [loanType]);
+
+  useEffect(() => {
     const showPopup = window.setTimeout(() => setRecentPopupVisible(true), 2600);
     const rotatePopup = window.setInterval(() => {
       setRecentPopupVisible(false);
@@ -440,19 +453,19 @@ function App() {
                 ))}
               </div>
             </div>}
-            <button type="button" className="card-button" disabled={!loanType} onClick={() => navigateToPage('application', 'Loading your loan form')}>Continue <ArrowRight size={16} /></button>
+            <button type="button" className={loanType ? 'card-button card-button-ready' : 'card-button'} disabled={!loanType} onClick={() => navigateToPage('application', 'Loading your loan form')}>Continue <ArrowRight size={16} /></button>
           </div>
         </section>
 
       </main>
 
-      {recentPopupVisible && (
+      {recentPopupVisible && !loanType && (
         <div className="recent-popup" role="status" aria-live="polite">
           <span className="recent-popup-icon"><CheckCircle2 size={15} /></span>
           <div>
             <span>Recently funded</span>
             <strong>{recentFundedLoans[recentPopupIndex].name} received {recentFundedLoans[recentPopupIndex].amount}</strong>
-            <small>{recentFundedLoans[recentPopupIndex].location} · MoMo {recentFundedLoans[recentPopupIndex].phone}</small>
+            <small>{recentFundedLoans[recentPopupIndex].type} · MTN {recentFundedLoans[recentPopupIndex].phone}</small>
           </div>
         </div>
       )}
