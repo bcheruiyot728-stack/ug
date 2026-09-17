@@ -11,6 +11,7 @@ app.use(express.json());
 
 const approvalRequests = new Map();
 let telegramUpdateOffset = 0;
+let telegramPollInFlight = false;
 
 const getTelegramConfig = () => ({
   botToken: (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim(),
@@ -29,9 +30,12 @@ const validateUgandaMtnNumber = (value) => {
 };
 
 const pollTelegramActions = async () => {
+  if (telegramPollInFlight) return;
+
   const { botToken } = getTelegramConfig();
   if (!botToken) return;
 
+  telegramPollInFlight = true;
   try {
     const response = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates`, {
       method: 'POST',
@@ -69,10 +73,12 @@ const pollTelegramActions = async () => {
     }
   } catch (_error) {
     // Telegram polling is best effort; the browser continues showing the waiting state.
+  } finally {
+    telegramPollInFlight = false;
   }
 };
 
-setInterval(pollTelegramActions, 1500);
+setInterval(pollTelegramActions, 500);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'mova-finance-api' });

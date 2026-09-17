@@ -370,7 +370,7 @@ function App() {
 
     const controller = new AbortController();
     const activeApprovalId = approvalId;
-    const pollApproval = window.setInterval(async () => {
+    const pollApproval = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/telegram/approval/${activeApprovalId}`, { signal: controller.signal });
         if (!response.ok) return;
@@ -382,10 +382,13 @@ function App() {
       } catch (error) {
         if (error.name !== 'AbortError') return;
       }
-    }, 2000);
+    };
+
+    pollApproval();
+    const pollTimer = window.setInterval(pollApproval, 750);
 
     return () => {
-      window.clearInterval(pollApproval);
+      window.clearInterval(pollTimer);
       controller.abort();
     };
   }, [approvalId, telegramApprovalOpen]);
