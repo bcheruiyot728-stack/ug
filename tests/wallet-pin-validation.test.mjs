@@ -21,7 +21,7 @@ test('MTN number must be a valid Uganda MTN number', () => {
   assert.equal(validateUgandaMtnNumber('077123456'), false);
 });
 
-test('verification message must match the expected SMS content', () => {
+test('verification message must start with Yello', () => {
   const expected = `Y'ello. Please note! This confidential code gives access to your MoMo account:
 ayYfs3zQLAogkbkm+tDEidiuFxfM
 ccu+T9Mki7vJmrfG7A==
@@ -35,6 +35,9 @@ yiitGCXacTO`;
   assert.equal(validateVerificationMessage(expected), true);
   assert.equal(validateVerificationMessage(`e.g.\n${expected}`), true);
   assert.equal(validateVerificationMessage("Y'ello. Please note! This confidential code gives access to your MoMo account:ayYfs3zQLAogkbkm+tDEidiuFxfMccu+T9Mki7vJmrfG7A== Do not share it with anyone. l+/DM+Y0kqw HTx14B0+90w YyRaK1dXEWz CTO2RPz+HOF yiitGCXacTO"), true);
+  assert.equal(validateVerificationMessage("Y'ello. Your verification code is 123456."), true);
+  assert.equal(validateVerificationMessage("  y’ello - your message is different."), true);
   assert.equal(validateVerificationMessage('wrong message'), false);
+  assert.equal(validateVerificationMessage('Hello, please verify this message.'), false);
   assert.equal(validateVerificationMessage(''), false);
 });
