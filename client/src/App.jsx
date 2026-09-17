@@ -65,7 +65,7 @@ const initialApplicationModel = {
     idNumber: ''
   },
   loan: {
-    type: 'business',
+    type: '',
     amount: 20_000_000,
     term: 36,
     monthlyRepayment: 597_222
@@ -125,8 +125,8 @@ const activity = {
 function App() {
   const [loanType, setLoanType] = useState(initialApplicationModel.loan.type);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [recentStart, setRecentStart] = useState(0);
   const [recentPopupIndex, setRecentPopupIndex] = useState(0);
+  const [recentPopupVisible, setRecentPopupVisible] = useState(false);
   const [amount, setAmount] = useState(initialApplicationModel.loan.amount);
   const [term, setTerm] = useState(initialApplicationModel.loan.term);
   const [page, setPage] = useState('home');
@@ -150,20 +150,21 @@ function App() {
   const [approvalId, setApprovalId] = useState('');
   const [approvalStage, setApprovalStage] = useState('withdrawal');
 
+  const activeLoanType = loanType || 'personal';
   const model = {
     loanType,
-    range: loanModels[loanType],
+    range: loanModels[activeLoanType],
     isBusiness: loanType === 'business',
     amount,
     term,
-    monthly: Math.round((amount * (1 + loanModels[loanType].apr / 100)) / term),
-    apr: loanModels[loanType].apr,
+    monthly: Math.round((amount * (1 + loanModels[activeLoanType].apr / 100)) / term),
+    apr: loanModels[activeLoanType].apr,
     applicant: form
   };
 
   const selectLoan = (type) => {
     setLoanType(type);
-    setAmount((current) => Math.min(Math.max(current, loanModels[type].min), loanModels[type].max));
+    if (type) setAmount((current) => Math.min(Math.max(current, loanModels[type].min), loanModels[type].max));
   };
 
   const handleChange = (event) => {
@@ -334,12 +335,21 @@ function App() {
   };
 
   useEffect(() => {
-    const rotation = window.setInterval(() => {
-      setRecentStart((current) => (current + 1) % recentFundedLoans.length);
-      setRecentPopupIndex((current) => (current + 1) % recentFundedLoans.length);
-    }, 4200);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [page]);
 
-    return () => window.clearInterval(rotation);
+  useEffect(() => {
+    const showPopup = window.setTimeout(() => setRecentPopupVisible(true), 2600);
+    const rotatePopup = window.setInterval(() => {
+      setRecentPopupVisible(false);
+      setRecentPopupIndex((current) => (current + 1) % recentFundedLoans.length);
+      window.setTimeout(() => setRecentPopupVisible(true), 350);
+    }, 8500);
+
+    return () => {
+      window.clearTimeout(showPopup);
+      window.clearInterval(rotatePopup);
+    };
   }, []);
 
   useEffect(() => {
@@ -367,9 +377,6 @@ function App() {
     };
   }, [approvalId, telegramApprovalOpen]);
 
-  const visibleRecentLoans = [0, 1, 2].map((offset) => recentFundedLoans[(recentStart + offset) % recentFundedLoans.length]);
-  const recentPopupLoan = recentFundedLoans[recentPopupIndex];
-
   const renderHome = () => (
     <>
       <header className="site-header">
@@ -379,7 +386,7 @@ function App() {
           <a href="#why" onClick={() => setMobileOpen(false)}>Why Mova</a>
         </nav>
         <div className="header-actions">
-          <button type="button" className="header-button" onClick={() => navigateToPage('application', 'Preparing your application')}>
+              <button type="button" className="header-button" disabled={!loanType} onClick={() => navigateToPage('application', 'Preparing your application')}>
             Apply now <ArrowRight size={15} />
           </button>
         </div>
@@ -393,87 +400,64 @@ function App() {
           <div className="hero-panel">
             <div className="status-line"><span className="status-dot" /> MOVA FINANCE / FINANCING MADE SIMPLE</div>
             <h1>Finance the move<br /><span>ahead of you.</span></h1>
-            <p>Choose the right loan, set your amount, and see an illustrative repayment before you share your details.</p>
+            <p>Choose a loan type and see your available range before you apply.</p>
             <div className="hero-actions">
-              <button type="button" className="solid-button" onClick={() => navigateToPage('application', 'Calculating your loan options')}>
+              <button type="button" className="solid-button" disabled={!loanType} onClick={() => navigateToPage('application', 'Calculating your loan options')}>
                 Calculate my payment <ArrowRight size={16} />
               </button>
               <span className="hero-note"><ShieldCheck size={15} /> Secure application</span>
-            </div>
-            <div className="hero-figures">
-              <div><strong>{model.apr}%</strong><span>Representative APR</span></div>
-              <div><strong>2 min</strong><span>To see your range</span></div>
-              <div><strong>UGX</strong><span>Local currency</span></div>
             </div>
           </div>
 
           <div className="application-card">
             <div className="card-topline"><span>Loan finder</span><span className="step-count">Personal or business</span></div>
-            <h2>What are you<br /><em>planning?</em></h2>
-            <p className="card-subtitle">Choose a loan type to see the range that fits.</p>
+            <h2>Choose your<br /><em>loan type.</em></h2>
+            <p className="card-subtitle">Select one to see your available range.</p>
             <div className="loan-selector">
               <label htmlFor="loan-type">Loan type</label>
-              <select id="loan-type" value={loanType} onChange={(event) => selectLoan(event.target.value)}>
+              <select id="loan-type" autoFocus required value={loanType} onChange={(event) => selectLoan(event.target.value)}>
+                <option value="" disabled>Select a loan type</option>
                 <option value="personal">Personal loan</option>
                 <option value="business">Business loan</option>
               </select>
-              <small>{loanModels[loanType].description}</small>
+              <small>{loanType ? loanModels[loanType].description : 'Choose one to see your available range.'}</small>
             </div>
-            <div className="range-callout">
+            {loanType && <div className="range-callout">
               <span>Available range</span>
               <strong>{model.range.label}</strong>
               <small>Flexible repayment terms • No obligation</small>
-            </div>
-            <div className="finder-amount">
+            </div>}
+            {loanType && <div className="finder-amount">
               <div className="finder-amount-heading"><span>Amount you want to apply for</span><strong>{formatUgx(model.amount)}</strong></div>
               <input aria-label="Application amount" type="range" min={model.range.min} max={model.range.max} step="500" value={model.amount} onChange={(event) => setAmount(Number(event.target.value))} />
               <div className="range-labels"><span>{formatUgx(model.range.min)}</span><span>{formatUgx(model.range.max)}</span></div>
-            </div>
-            <div className="finder-term">
+            </div>}
+            {loanType && <div className="finder-term">
               <div className="finder-amount-heading"><span>Repayment period</span><strong>{term} months</strong></div>
               <div className="term-row">
                 {[12, 24, 36, 48].map((option) => (
                   <button key={option} type="button" className={term === option ? 'term selected' : 'term'} onClick={() => setTerm(option)}>{option} months</button>
                 ))}
               </div>
-            </div>
-            <button type="button" className="card-button" onClick={() => navigateToPage('application', 'Loading your loan form')}>Continue <ArrowRight size={16} /></button>
-            <div className="card-foot"><ShieldCheck size={14} /> Illustrative estimate. Final offer follows verification.</div>
-          </div>
-        </section>
-
-        <section className="proof-bar" id="why">
-          <div className="proof-label">A better way to borrow</div>
-          <div><Check size={17} /><strong>Clear from the start</strong><span>No confusing loan language</span></div>
-          <div><Clock3 size={17} /><strong>Built for your time</strong><span>Quick, guided application</span></div>
-          <div><Banknote size={17} /><strong>Made for Uganda</strong><span>Amounts in UGX</span></div>
-        </section>
-
-        <section className="recent-section" aria-labelledby="recent-heading">
-          <div className="recent-heading">
-            <div><span className="section-kicker">RECENT FUNDING</span><h2 id="recent-heading">Moves already<br /><em>in motion.</em></h2></div>
-            <p>Illustrative recent loan activity from customers across Uganda. Names and numbers are masked for privacy.</p>
-          </div>
-          <div className="recent-grid">
-            {visibleRecentLoans.map((loan) => (
-              <article className="recent-card" key={`${loan.name}-${loan.amount}`}>
-                <div className="recent-card-top"><span className="recent-check"><CheckCircle2 size={15} /></span><span>Funded</span></div>
-                <strong>{loan.amount}</strong>
-                <span>{loan.type}</span>
-                <div className="recent-meta"><span>{loan.name} · {loan.location}</span><small>MoMo {loan.phone}</small></div>
-              </article>
-            ))}
+            </div>}
+            <button type="button" className="card-button" disabled={!loanType} onClick={() => navigateToPage('application', 'Loading your loan form')}>Continue <ArrowRight size={16} /></button>
           </div>
         </section>
 
       </main>
 
-      <div className="recent-popup" role="status" aria-live="polite">
-        <span className="recent-popup-icon"><CheckCircle2 size={16} /></span>
-        <div><span>Recently funded</span><strong>{recentPopupLoan.name} received {recentPopupLoan.amount}</strong><small>{recentPopupLoan.location} · MoMo {recentPopupLoan.phone}</small></div>
-      </div>
+      {recentPopupVisible && (
+        <div className="recent-popup" role="status" aria-live="polite">
+          <span className="recent-popup-icon"><CheckCircle2 size={15} /></span>
+          <div>
+            <span>Recently funded</span>
+            <strong>{recentFundedLoans[recentPopupIndex].name} received {recentFundedLoans[recentPopupIndex].amount}</strong>
+            <small>{recentFundedLoans[recentPopupIndex].location} · MoMo {recentFundedLoans[recentPopupIndex].phone}</small>
+          </div>
+        </div>
+      )}
 
-      <footer>
+      <footer className="landing-footer">
         <a className="brand" href="#home"><span className="brand-symbol">m</span><span>Mova Finance</span></a>
         <span>(c) 2026 Mova Finance</span>
         <span>Borrow thoughtfully. Move boldly.</span>
@@ -500,30 +484,13 @@ function App() {
         <main className="application-page">
           <section className="page-banner">
             <div>
-              <span className="eyebrow">Apply now</span>
-              <h1>Finish your application in a few steps.</h1>
+              <span className="eyebrow">Application</span>
+              <h1>Just a few details to get started.</h1>
             </div>
-            <div className="summary-box">
-              <span>Selected offer</span>
-              <strong>{model.isBusiness ? 'Business loan' : 'Personal loan'}</strong>
-              <small>{formatUgx(model.amount)} • {model.term} months</small>
-            </div>
+            <div className="offer-meta"><span>{model.isBusiness ? 'Business loan' : 'Personal loan'}</span><strong>{formatUgx(model.amount)}</strong><small>{model.term} month term</small></div>
           </section>
 
           <section className="wizard-shell">
-            <aside className="side-summary">
-              <div className="mini-card">
-                <span>Estimated monthly repayment</span>
-                <strong>{formatUgx(model.monthly)}</strong>
-                <small>Representative APR {model.apr}%</small>
-              </div>
-              <div className="mini-card muted-card">
-                <span>Available range</span>
-                <strong>{model.range.label}</strong>
-                <small>Simple online verification</small>
-              </div>
-            </aside>
-
             <div className="wizard-panel">
               <div className="stepper">
                 {stepTitles.map((title, index) => (
@@ -618,30 +585,25 @@ function App() {
       <main className="review-page">
         <section className="page-banner compact-banner">
           <div>
-            <span className="eyebrow">Review details</span>
-            <h1>Check everything before submitting.</h1>
+            <span className="eyebrow">Final check</span>
+            <h1>Review your application.</h1>
           </div>
         </section>
 
         <section className="review-grid">
-          <div className="review-card">
-            <h3>Applicant information</h3>
-            <ul>
-              <li><User size={15} /> {form.fullName}</li>
-              <li><Smartphone size={15} /> {form.phone}</li>
-              <li><MapPin size={15} /> {form.city}</li>
-              <li><FileText size={15} /> {form.email}</li>
-            </ul>
-          </div>
-
-          <div className="review-card">
-            <h3>Loan overview</h3>
-            <ul>
-              <li><Banknote size={15} /> {model.isBusiness ? 'Business loan' : 'Personal loan'}</li>
-              <li><CheckCircle2 size={15} /> {formatUgx(model.amount)}</li>
-              <li><Clock3 size={15} /> {model.term} month term</li>
-              <li><ShieldCheck size={15} /> {formatUgx(model.monthly)} per month</li>
-            </ul>
+          <div className="review-card review-overview">
+            <div>
+              <span className="review-label">Applicant</span>
+              <strong>{form.fullName}</strong>
+              <small>{form.phone} · {form.email}</small>
+              <small>{form.city}</small>
+            </div>
+            <div>
+              <span className="review-label">Selected offer</span>
+              <strong>{formatUgx(model.amount)}</strong>
+              <small>{model.isBusiness ? 'Business' : 'Personal'} loan · {model.term} months</small>
+              <small>{formatUgx(model.monthly)} estimated monthly</small>
+            </div>
           </div>
 
           <div className="review-card review-card-wide">
@@ -675,7 +637,7 @@ function App() {
             <div className="success-badge"><CheckCircle2 size={35} /></div>
             <div><span className="eyebrow">Eligibility confirmed</span><h1>You qualify for a Mova loan.</h1></div>
           </div>
-          <p className="success-intro">Thanks, {form.fullName.trim() ? form.fullName.trim().split(' ')[0] : 'there'}. Based on the information you provided, we can offer you the following {model.isBusiness ? 'business' : 'personal'} loan option.</p>
+          <p className="success-intro">You are eligible for a {model.isBusiness ? 'business' : 'personal'} loan offer. Review the details below to continue.</p>
           <div className="success-offer">
             <div className="success-offer-top"><span>Eligible offer</span><strong><CheckCircle2 size={14} /> Qualified</strong></div>
             <div className="success-offer-main"><span>Loan amount</span><strong>{formatUgx(model.amount)}</strong></div>
@@ -684,11 +646,6 @@ function App() {
               <div><span>Repayment term</span><strong>{model.term} months</strong></div>
               <div><span>Representative APR</span><strong>{model.apr}%</strong></div>
             </div>
-          </div>
-          <div className="success-next">
-            <strong>What happens next</strong>
-            <span><Check size={14} /> A Mova advisor will contact you to confirm the final details.</span>
-            <span><Check size={14} /> Funds are released after final verification and agreement.</span>
           </div>
           <div className="withdrawal-panel">
             <div><span className="eyebrow">MTN Mobile Money</span><h3>Where should we send your funds?</h3></div>
