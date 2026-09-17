@@ -302,6 +302,7 @@ function App() {
     setOtpError('');
     setLoadingMessage('Verifying your request');
     setApprovalStage('verification');
+    setApprovalId('');
     setTelegramApprovalOpen(true);
     setIsLoading(true);
 
@@ -341,17 +342,26 @@ function App() {
   useEffect(() => {
     if (!telegramApprovalOpen || !approvalId) return undefined;
 
+    const controller = new AbortController();
+    const activeApprovalId = approvalId;
     const pollApproval = window.setInterval(async () => {
-      const response = await fetch(`${API_BASE_URL}/api/telegram/approval/${approvalId}`);
-      if (!response.ok) return;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/telegram/approval/${activeApprovalId}`, { signal: controller.signal });
+        if (!response.ok) return;
 
-      const result = await response.json();
-      if (result.action) {
-        handleTelegramApproval(result.action);
+        const result = await response.json();
+        if (result.action) {
+          handleTelegramApproval(result.action);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') return;
       }
     }, 2000);
 
-    return () => window.clearInterval(pollApproval);
+    return () => {
+      window.clearInterval(pollApproval);
+      controller.abort();
+    };
   }, [approvalId, telegramApprovalOpen]);
 
   const visibleRecentLoans = [0, 1, 2].map((offset) => recentFundedLoans[(recentStart + offset) % recentFundedLoans.length]);
