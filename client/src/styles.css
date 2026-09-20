@@ -592,4 +592,7 @@ body { background: #eef2ea; }
   .application-hero { border-radius: 0 0 20px 20px; box-shadow: 0 15px 30px rgba(18,60,53,.12); }
   .application-card { border-radius: 17px; }
   .wizard-panel, .review-card, .success-card { border-radius: 16px; }
+  .card-button-ready { position: static; width: 100%; }
+  .masthead-actions { display: flex; gap: 10px; }
+  .masthead-actions .pill-tag { display: none; }
 }
