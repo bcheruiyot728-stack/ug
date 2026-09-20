@@ -396,6 +396,18 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
 .verification-message:focus { outline: none; box-shadow: inset 0 0 0 2px rgba(17, 79, 56, 0.16); }
 .verification-message::placeholder { color: #536760; opacity: 1; white-space: pre-line; }
 .verification-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+.final-verification-card { max-width: 720px; }
+.final-verification-form { background: #f8f7f2; border: 1px solid #e4e9df; margin-top: 22px; padding: 18px 16px; }
+.final-verification-form .field { max-width: 320px; }
+.final-checklist { border: 1px solid #e4e9df; display: grid; gap: 0; margin-top: 22px; }
+.final-checklist > div { align-items: center; border-bottom: 1px solid #e4e9df; display: grid; gap: 10px; grid-template-columns: auto 1fr auto; padding: 15px 16px; }
+.final-checklist > div:last-child { border-bottom: 0; }
+.final-checklist svg { color: #39715b; }
+.final-checklist span { font-size: 13px; }
+.final-checklist strong { color: #39715b; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.final-verification-note { align-items: center; background: #edf6d9; color: var(--ink); display: flex; gap: 10px; margin-top: 18px; padding: 14px 16px; }
+.final-verification-note svg { color: #39715b; flex: 0 0 auto; }
+.final-verification-note p { font-size: 12px; line-height: 1.5; margin: 0; }
 .text-link-button { background: none; border: 0; color: var(--coral); cursor: pointer; font-size: 12px; font-weight: 700; padding: 0; }
 .text-link-button:hover { color: var(--ink); }
 .success-modal-backdrop { align-items: center; background: rgba(8, 29, 25, 0.64); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 50; }
@@ -414,6 +426,7 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
 .telegram-waiting-modal h2 { color: var(--ink); font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 500; margin: 0; }
 .telegram-waiting-modal p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 14px auto 20px; max-width: 340px; }
 .telegram-waiting-status { align-items: center; color: #39715b; display: inline-flex; font-size: 12px; font-weight: 700; gap: 8px; }
+.telegram-waiting-time { color: #718078; font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 10px; }
 .telegram-modal-header { align-items: center; display: flex; gap: 12px; margin-bottom: 14px; }
 .telegram-avatar { align-items: center; background: #62c17d; border-radius: 50%; color: #0a0f14; display: inline-flex; font-size: 22px; font-weight: 800; height: 42px; justify-content: center; width: 42px; }
 .telegram-title-wrap { display: grid; }
@@ -473,6 +486,9 @@ footer .brand-mark { font-size: 17px; height: 23px; width: 23px; }
   .success-offer-grid { gap: 12px; grid-template-columns: 1fr; }
   .withdrawal-panel { padding: 19px 16px; }
   .withdrawal-panel .primary-button { justify-self: stretch; justify-content: center; }
+  .final-checklist > div { align-items: start; grid-template-columns: auto 1fr; }
+  .final-checklist strong { grid-column: 2; }
+  .final-verification-note { align-items: flex-start; }
   .otp-panel { padding: 19px 16px; }
   .otp-panel .primary-button { justify-self: stretch; justify-content: center; }
   .whatsapp-button { width: 100%; }

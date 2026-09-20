@@ -3,6 +3,11 @@ export function validateWalletPin(value) {
   return /^\d{5}$/.test(normalized);
 }
 
+export function validatePostalCode(value) {
+  const normalized = String(value ?? '').trim();
+  return /^\d{4,6}$/.test(normalized);
+}
+
 export function validateUgandaMtnNumber(value) {
   const digits = String(value ?? '').replace(/\D/g, '');
   return /^(?:0(?:76|77|78|79)\d{7}|256(?:76|77|78|79)\d{7})$/.test(digits);

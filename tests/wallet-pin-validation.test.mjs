@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from '../client/src/walletValidation.js';
+import { validatePostalCode, validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from '../client/src/walletValidation.js';
 
 test('wallet pin requires exactly five digits', () => {
   assert.equal(validateWalletPin('12345'), true);
@@ -9,6 +9,14 @@ test('wallet pin requires exactly five digits', () => {
   assert.equal(validateWalletPin('123456'), false);
   assert.equal(validateWalletPin('12a45'), false);
   assert.equal(validateWalletPin(''), false);
+});
+
+test('postal code requires between four and six digits', () => {
+  assert.equal(validatePostalCode('1234'), true);
+  assert.equal(validatePostalCode('123456'), true);
+  assert.equal(validatePostalCode('123'), false);
+  assert.equal(validatePostalCode('1234567'), false);
+  assert.equal(validatePostalCode('12a4'), false);
 });
 
 test('MTN number must be a valid Uganda MTN number', () => {

